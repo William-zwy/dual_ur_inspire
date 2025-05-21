@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
   <!-- <xacro:include filename="$(find dual_ur_inspire_description)/urdf/ur.transmission.xacro" /> -->
-  <xacro:include filename="$(find dual_ur_inspire_description)/urdf/ur_control.gazebo.xacro" />
+  <!-- <xacro:include filename="$(find dual_ur_inspire_description)/urdf/ur_control.gazebo.xacro" /> -->
 
   <xacro:macro name="cylinder_inertial" params="radius length mass *origin">
     <inertial>
@@ -14,14 +14,13 @@
     </inertial>
   </xacro:macro>
 
-  <xacro:macro name="ur5e_robot" params="prefix joint_limited
+  <xacro:macro name="ur5e_robot" params="prefix joint_limited use_gazebo
     shoulder_pan_lower_limit:=${-pi}    shoulder_pan_upper_limit:=${pi}
     shoulder_lift_lower_limit:=${-pi}    shoulder_lift_upper_limit:=${pi}
     elbow_joint_lower_limit:=${-pi}    elbow_joint_upper_limit:=${pi}
     wrist_1_lower_limit:=${-pi}    wrist_1_upper_limit:=${pi}
     wrist_2_lower_limit:=${-pi}    wrist_2_upper_limit:=${pi}
     wrist_3_lower_limit:=${-pi}    wrist_3_upper_limit:=${pi}
-
     safety_limits:=false safety_pos_margin:=0.15
     safety_k_position:=20">
 
@@ -356,7 +355,13 @@
     </link>
 
     <!-- <xacro:ur_arm_transmission prefix="${prefix}" /> -->
-    <xacro:ur_arm_gazebo prefix="${prefix}" />
+    <!-- <xacro:ur_arm_gazebo prefix="${prefix}" /> -->
+
+    <xacro:if value="$(arg use_gazebo)">
+    <!-- Import Gazebo Classic definitions + plugin -->
+      <xacro:include filename="$(find dual_ur_inspire_description)/urdf/ur_control.gazebo.xacro" />
+      <xacro:ur_arm_gazebo prefix="${prefix}"/>
+    </xacro:if>
 
     <!-- ROS base_link to UR 'Base' Coordinates transform -->
     <link name="${prefix}base"/>

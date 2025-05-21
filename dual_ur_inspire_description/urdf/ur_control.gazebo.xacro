@@ -3,11 +3,11 @@
   <xacro:macro name="ur_arm_gazebo" params="prefix">
 
     <!-- Gazebo Plugin Loader -->
-    <gazebo>
-      <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
-        <ros2_control_name>${prefix}ur_arm_gazebo</ros2_control_name>
+    <!-- <gazebo>
+      <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+        <parameters>$(find dual_ur_inspire_description)/config/dual_arm_inspire_controller.yaml</parameters>
       </plugin>
-    </gazebo>
+    </gazebo> -->
 
     <!-- Link Self-Collision Settings -->
     <gazebo reference="${prefix}shoulder_link">
