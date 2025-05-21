@@ -1,0 +1,36 @@
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="ur_arm_gazebo" params="prefix">
+
+    <!-- Gazebo Plugin Loader -->
+    <gazebo>
+      <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+        <ros2_control_name>${prefix}ur_arm_gazebo</ros2_control_name>
+      </plugin>
+    </gazebo>
+
+    <!-- Link Self-Collision Settings -->
+    <gazebo reference="${prefix}shoulder_link">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}upper_arm_link">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}forearm_link">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}wrist_1_link">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}wrist_2_link">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}wrist_3_link">
+      <selfCollide>true</selfCollide>
+    </gazebo>
+    <gazebo reference="${prefix}ee_link">
+      <selfCollide>false</selfCollide>
+    </gazebo>
+
+  </xacro:macro>
+</robot>

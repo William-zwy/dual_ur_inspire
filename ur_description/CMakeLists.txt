@@ -1,20 +1,25 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(ur_description)
 
-find_package(catkin REQUIRED)
-
-catkin_package()
-
-if (CATKIN_ENABLE_TESTING)
-  find_package(roslaunch REQUIRED)
-  roslaunch_add_file_check(tests/roslaunch_test_ur10e.xml)
-  roslaunch_add_file_check(tests/roslaunch_test_ur10.xml)
-  roslaunch_add_file_check(tests/roslaunch_test_ur16e.xml)
-  roslaunch_add_file_check(tests/roslaunch_test_ur3e.xml)
-  roslaunch_add_file_check(tests/roslaunch_test_ur3.xml)
-  roslaunch_add_file_check(tests/roslaunch_test_ur5e.xml)
-  roslaunch_add_file_check(tests/roslaunch_test_ur5.xml)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-install(DIRECTORY cfg config launch meshes urdf
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+find_package(ament_cmake REQUIRED)
+
+# Install directories
+install(DIRECTORY
+  cfg
+  config
+  launch
+  meshes
+  urdf
+  DESTINATION share/${PROJECT_NAME}
+)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()

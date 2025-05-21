@@ -4,44 +4,45 @@ This repository provides our customized UR5e integration with robotiq 3 Finger g
 
 ![real_robot](https://user-images.githubusercontent.com/6389003/141102453-e75c4ded-fe8f-4a26-9d55-d97c1e357f7d.JPG)
 
-Tested on Ubuntu 18.04 with ROS Melodic.
+Tested on Ubuntu 22.04 with ROS 2 Humble.
 
 ### The features and usage of the dual arm driver are described on the [WIKI](https://github.com/yaesolKim/dual_ur5e/wiki).   
 
 
 ## Robot simulation
 ### Run gazebo, moveit, Rviz   
-```
-roslaunch robot_gazebo dual_ur_robotiq.launch world:=table_box
-roslaunch robot_moveit_config robot_moveit_planning_execution.launch sim:=true
-roslaunch robot_moveit_config moveit_rviz.launch 
+```bash
+ros2 launch robot_gazebo dual_ur_robotiq.launch.py world:=table_box
+ros2 launch robot_moveit_config robot_moveit_planning_execution.launch.py sim:=true
+ros2 launch robot_moveit_config moveit_rviz.launch.py
 ```   
 ### Pick and place simulation
-```commandline
-rosrun bimanual_manipulation pick_place_collision
+```bash
+ros2 run bimanual_manipulation pick_place_collision
 ```
 
 ## Real robot execution: Bring up grippers and robots, Run moveit and Rviz   
 Run the lines below in the respective terminals.
 
-```commandline
-roscore
-roslaunch robotiq_3f_gripper_control dual_gripper_tcp.launch
-roslaunch robotiq_3f_gripper_joint_state_publisher dual_gripper_joint_state_publisher.launch
-roslaunch robotiq_3f_gripper_visualization robotiq_gripper_upload.launch
+```bash
+# Terminal 1
+ros2 launch robotiq_3f_gripper_control dual_gripper_tcp.launch.py
+ros2 launch robotiq_3f_gripper_joint_state_publisher dual_gripper_joint_state_publisher.launch.py
+ros2 launch robotiq_3f_gripper_visualization robotiq_gripper_upload.launch.py
 
-roslaunch ur_robot_driver robot_bringup.launch   
-roslaunch robot_moveit_config robot_moveit_planning_execution.launch sim:=false     
-roslaunch robot_moveit_config moveit_rviz.launch   
+# Terminal 2
+ros2 launch ur_robot_driver robot_bringup.launch.py   
+ros2 launch robot_moveit_config robot_moveit_planning_execution.launch.py sim:=false     
+ros2 launch robot_moveit_config moveit_rviz.launch.py   
 ```
 
 ## Gripper 
 - Mode: basic, pinch, wide scissor
 - Action: close, open   
 
-```commandline
-rosrun robotiq_3f_gripper_control Robotiq3FGripperSimpleController.py  
-rosrun robotiq_3f_gripper_control Robotiq3FGripperStatusListener.py
+```bash
+ros2 run robotiq_3f_gripper_control Robotiq3FGripperSimpleController.py  
+ros2 run robotiq_3f_gripper_control Robotiq3FGripperStatusListener.py
 ```
 
 ## Contact
