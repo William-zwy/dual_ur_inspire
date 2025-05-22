@@ -10,9 +10,11 @@ controller_manager:
     ur_arm_right_ros2_controller:
       type: joint_trajectory_controller/JointTrajectoryController
     inspire_hand_left_ros2_controller:
-      type: forward_command_controller/ForwardCommandController
+      # type: forward_command_controller/ForwardCommandController
+        type: joint_trajectory_controller/JointTrajectoryController
     inspire_hand_right_ros2_controller:
-      type: forward_command_controller/ForwardCommandController
+      # type: forward_command_controller/ForwardCommandController
+        type: joint_trajectory_controller/JointTrajectoryController
 
 ur_arm_left_ros2_controller:
   ros__parameters:
@@ -58,7 +60,13 @@ inspire_hand_left_ros2_controller:
       - left_hand_L_ring_proximal_joint
       - left_hand_L_pinky_proximal_joint
 
-    interface_name: position
+    # interface_name: position
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+      - velocity
 
 inspire_hand_right_ros2_controller:
   ros__parameters:
@@ -70,4 +78,10 @@ inspire_hand_right_ros2_controller:
       - right_hand_R_ring_proximal_joint
       - right_hand_R_pinky_proximal_joint
 
-    interface_name: position
+    # interface_name: position
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+      - velocity

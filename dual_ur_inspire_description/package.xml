@@ -28,6 +28,7 @@
   <exec_depend>gz_ros2_control</exec_depend>
   <exec_depend>joint_state_broadcaster</exec_depend>
   <exec_depend>controller_interface</exec_depend>
+  <exec_depend>ros2_controllers_test_nodes</exec_depend>
 
   <depend>moveit_ros_planning_interface</depend>
   <depend>joint_state_publisher</depend>

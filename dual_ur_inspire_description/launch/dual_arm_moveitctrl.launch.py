@@ -129,6 +129,16 @@ def launch_setup(context, *args, **kwargs):
         arguments=["ur_arm_right_ros2_controller", "-c", "/controller_manager"],
         parameters=[{"use_sim_time": True}],
     )
+    left_hand_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["inspire_hand_left_ros2_controller", "-c", "/controller_manager"],
+    )
+    right_hand_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["inspire_hand_right_ros2_controller", "-c", "/controller_manager"],
+    )
 
     # gazebo
     gazebo = IncludeLaunchDescription(
@@ -176,6 +186,20 @@ def launch_setup(context, *args, **kwargs):
     delay_joint_state_broadcaster_after_right_controller_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=right_arm_controller_spawner,
+            on_exit=[left_hand_controller_spawner],
+        )
+    )
+
+    delay_joint_state_broadcaster_after_left_hand_controller_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=left_hand_controller_spawner,
+            on_exit=[right_hand_controller_spawner],
+        )
+    )
+
+    delay_joint_state_broadcaster_after_right_hand_controller_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=right_hand_controller_spawner,
             on_exit=[joint_state_broadcaster_spawner],
         )
     )
@@ -193,7 +217,9 @@ def launch_setup(context, *args, **kwargs):
 
         left_arm_controller_spawner,
         delay_joint_state_broadcaster_after_left_controller_spawner,
-        delay_joint_state_broadcaster_after_right_controller_spawner
+        delay_joint_state_broadcaster_after_right_controller_spawner,
+        delay_joint_state_broadcaster_after_left_hand_controller_spawner,
+        delay_joint_state_broadcaster_after_right_hand_controller_spawner
     ]
 
     return nodes_to_start
