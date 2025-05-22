@@ -357,11 +357,11 @@
     <!-- <xacro:ur_arm_transmission prefix="${prefix}" /> -->
     <!-- <xacro:ur_arm_gazebo prefix="${prefix}" /> -->
 
-    <xacro:if value="$(arg use_gazebo)">
+    <!-- <xacro:if value="$(use_gazebo)"> -->
     <!-- Import Gazebo Classic definitions + plugin -->
       <xacro:include filename="$(find dual_ur_inspire_description)/urdf/ur_control.gazebo.xacro" />
       <xacro:ur_arm_gazebo prefix="${prefix}"/>
-    </xacro:if>
+    <!-- </xacro:if> -->
 
     <!-- ROS base_link to UR 'Base' Coordinates transform -->
     <link name="${prefix}base"/>
