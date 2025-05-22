@@ -78,16 +78,20 @@
 
 <!-- (2) Inspire Hands -->
   <xacro:include filename="$(find dual_ur_inspire_description)/urdf/inspire_hand_left.xacro" />
+  <xacro:include filename="$(find dual_ur_inspire_description)/urdf/inspire_hand_left.ros2_control.xacro" />
   <xacro:include filename="$(find dual_ur_inspire_description)/urdf/inspire_hand_right.xacro" />
+  <xacro:include filename="$(find dual_ur_inspire_description)/urdf/inspire_hand_right.ros2_control.xacro" />
 
   <!-- Instantiate left Inspire hand -->
   <xacro:inspire_hand_left prefix="left_hand_" parent_link="left_ee_link">
     <origin xyz="0 0 0" rpy="0 0 ${PI/2}" />
   </xacro:inspire_hand_left>
+  <xacro:inspire_hand_left_ros2_control prefix="left_hand_" use_gazebo="$(arg use_gazebo)"/>
 
   <!-- Instantiate right Inspire hand -->
   <xacro:inspire_hand_right prefix="right_hand_" parent_link="right_ee_link">
     <origin xyz="0 0 0" rpy="0 0 ${PI/2}" />
   </xacro:inspire_hand_right>
+  <xacro:inspire_hand_right_ros2_control prefix="right_hand_" use_gazebo="$(arg use_gazebo)"/>
 
 </robot>

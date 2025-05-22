@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="inspire_hand_left_ros2_control" params="prefix use_gazebo:=^|true">
+    <ros2_control name="${prefix}L_hand_system" type="system">
+      <hardware>
+        <xacro:if value="${use_gazebo}">
+          <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        </xacro:if>
+        <xacro:unless value="${use_gazebo}">
+          <plugin>gz_ros2_control/IsaacsimHardWare</plugin>
+        </xacro:unless>
+      </hardware>
+
+      <!-- Each joint definition -->
+      <joint name="${prefix}L_thumb_proximal_yaw_joint">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="${prefix}L_thumb_proximal_pitch_joint">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="${prefix}L_index_proximal_joint">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="${prefix}L_middle_proximal_joint">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="${prefix}L_ring_proximal_joint">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="${prefix}L_pinky_proximal_joint">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+  </xacro:macro>
+
+</robot>

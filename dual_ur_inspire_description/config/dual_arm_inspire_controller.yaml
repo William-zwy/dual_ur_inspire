@@ -9,6 +9,10 @@ controller_manager:
       type: joint_trajectory_controller/JointTrajectoryController
     ur_arm_right_ros2_controller:
       type: joint_trajectory_controller/JointTrajectoryController
+    inspire_hand_left_ros2_controller:
+      type: forward_command_controller/ForwardCommandController
+    inspire_hand_right_ros2_controller:
+      type: forward_command_controller/ForwardCommandController
 
 ur_arm_left_ros2_controller:
   ros__parameters:
@@ -43,3 +47,27 @@ ur_arm_right_ros2_controller:
     state_interfaces:
       - position
       - velocity
+
+inspire_hand_left_ros2_controller:
+  ros__parameters:
+    joints:
+      - left_hand_L_thumb_proximal_yaw_joint
+      - left_hand_L_thumb_proximal_pitch_joint
+      - left_hand_L_index_proximal_joint
+      - left_hand_L_middle_proximal_joint
+      - left_hand_L_ring_proximal_joint
+      - left_hand_L_pinky_proximal_joint
+
+    interface_name: position
+
+inspire_hand_right_ros2_controller:
+  ros__parameters:
+    joints:
+      - right_hand_R_thumb_proximal_yaw_joint
+      - right_hand_R_thumb_proximal_pitch_joint
+      - right_hand_R_index_proximal_joint
+      - right_hand_R_middle_proximal_joint
+      - right_hand_R_ring_proximal_joint
+      - right_hand_R_pinky_proximal_joint
+
+    interface_name: position
