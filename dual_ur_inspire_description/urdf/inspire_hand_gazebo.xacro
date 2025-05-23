@@ -1,0 +1,44 @@
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="inspire_hand_gazebo" params="prefix">
+
+    <gazebo reference="${prefix}_index_tip">
+      <collision>
+        <geometry>
+          <box size="0.01 0.01 0.01"/>
+        </geometry>
+      </collision>
+    </gazebo>
+    
+    <gazebo reference="${prefix}_middle_tip">
+      <collision>
+        <geometry>
+          <box size="0.01 0.01 0.01"/>
+        </geometry>
+      </collision>
+    </gazebo>
+    
+    <gazebo reference="${prefix}_pinky_tip">
+      <collision>
+        <geometry>
+          <box size="0.01 0.01 0.01"/>
+        </geometry>
+      </collision>
+    </gazebo>
+    
+    <gazebo reference="${prefix}_ring_tip">
+      <collision>
+        <geometry>
+          <box size="0.01 0.01 0.01"/>
+        </geometry>
+      </collision>
+    </gazebo>
+    
+    <gazebo reference="${prefix}_thumb_tip">
+      <collision>
+        <geometry>
+          <box size="0.01 0.01 0.01"/>
+        </geometry>
+      </collision>
+    </gazebo>
+
+</robot>

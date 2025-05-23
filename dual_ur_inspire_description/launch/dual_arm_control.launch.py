@@ -1,6 +1,6 @@
 import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription, GroupAction
 from launch.substitutions import LaunchConfiguration, Command, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -157,12 +157,6 @@ def generate_launch_description():
             ],
         )
 
-        joint_state_broadcaster_spawner = Node(
-            package="controller_manager",
-            executable="spawner",
-            arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
-        )
-
         left_arm_controller_spawner = Node(
             package="controller_manager",
             executable="spawner",
@@ -173,17 +167,106 @@ def generate_launch_description():
             executable="spawner",
             arguments=["ur_arm_right_ros2_controller", "-c", "/controller_manager"],
         )
-        left_hand_controller_spawner = Node(
+
+        # Left hand joint controllers
+        left_thumb_yaw_controller_spawner = Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["inspire_hand_left_ros2_controller", "-c", "/controller_manager"],
+            arguments=["left_hand_L_thumb_proximal_yaw_joint_controller", "-c", "/controller_manager"],
         )
-        right_hand_controller_spawner = Node(
+        left_thumb_pitch_controller_spawner = Node(
             package="controller_manager",
             executable="spawner",
-            arguments=["inspire_hand_right_ros2_controller", "-c", "/controller_manager"],
+            arguments=["left_hand_L_thumb_proximal_pitch_joint_controller", "-c", "/controller_manager"],
+        )
+        left_index_controller_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["left_hand_L_index_proximal_joint_controller", "-c", "/controller_manager"],
+        )
+        left_middle_controller_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["left_hand_L_middle_proximal_joint_controller", "-c", "/controller_manager"],
+        )
+        left_ring_controller_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["left_hand_L_ring_proximal_joint_controller", "-c", "/controller_manager"],
+        )
+        left_pinky_controller_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["left_hand_L_pinky_proximal_joint_controller", "-c", "/controller_manager"],
         )
 
+        # Right hand joint controllers
+        right_thumb_yaw_controller_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["right_hand_R_thumb_proximal_yaw_joint_controller", "-c", "/controller_manager"],
+        )
+        right_thumb_pitch_controller_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["right_hand_R_thumb_proximal_pitch_joint_controller", "-c", "/controller_manager"],
+        )
+        right_index_controller_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["right_hand_R_index_proximal_joint_controller", "-c", "/controller_manager"],
+        )
+        right_middle_controller_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["right_hand_R_middle_proximal_joint_controller", "-c", "/controller_manager"],
+        )
+        right_ring_controller_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["right_hand_R_ring_proximal_joint_controller", "-c", "/controller_manager"],
+        )
+        right_pinky_controller_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["right_hand_R_pinky_proximal_joint_controller", "-c", "/controller_manager"],
+        )
+
+        joint_state_broadcaster_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+        )
+
+        # Create controller groups
+        arm_controllers = GroupAction(
+            actions=[
+                left_arm_controller_spawner,
+                right_arm_controller_spawner,
+            ]
+        )
+
+        left_hand_controllers = GroupAction(
+            actions=[
+                left_thumb_yaw_controller_spawner,
+                left_thumb_pitch_controller_spawner,
+                left_index_controller_spawner,
+                left_middle_controller_spawner,
+                left_ring_controller_spawner,
+                left_pinky_controller_spawner,
+            ]
+        )
+
+        right_hand_controllers = GroupAction(
+            actions=[
+                right_thumb_yaw_controller_spawner,
+                right_thumb_pitch_controller_spawner,
+                right_index_controller_spawner,
+                right_middle_controller_spawner,
+                right_ring_controller_spawner,
+                right_pinky_controller_spawner,
+            ]
+        )
 
         # Delay rviz start after `joint_state_broadcaster`
         delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
@@ -193,32 +276,24 @@ def generate_launch_description():
             )
         )
 
-        # Delay start of joint_state_broadcaster after `robot_controller`
-        # TODO(anyone): This is a workaround for flaky tests. Remove when fixed.
-        delay_joint_state_broadcaster_after_left_controller_spawner = RegisterEventHandler(
-            event_handler=OnProcessExit(
-                target_action=left_arm_controller_spawner,
-                on_exit=[right_arm_controller_spawner],
-            )
-        )
-
-        delay_joint_state_broadcaster_after_right_controller_spawner = RegisterEventHandler(
+        # Delay start of controllers
+        delay_left_hand_after_arms = RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=right_arm_controller_spawner,
-                on_exit=[left_hand_controller_spawner],
+                on_exit=[left_hand_controllers],
             )
         )
 
-        delay_joint_state_broadcaster_after_left_hand_controller_spawner = RegisterEventHandler(
+        delay_right_hand_after_left_hand = RegisterEventHandler(
             event_handler=OnProcessExit(
-                target_action=left_hand_controller_spawner,
-                on_exit=[right_hand_controller_spawner],
+                target_action=left_pinky_controller_spawner,
+                on_exit=[right_hand_controllers],
             )
         )
 
-        delay_joint_state_broadcaster_after_right_hand_controller_spawner = RegisterEventHandler(
+        delay_joint_state_broadcaster_after_hands = RegisterEventHandler(
             event_handler=OnProcessExit(
-                target_action=right_hand_controller_spawner,
+                target_action=right_pinky_controller_spawner,
                 on_exit=[joint_state_broadcaster_spawner],
             )
         )
@@ -233,16 +308,14 @@ def generate_launch_description():
             gazebo_bridge,
             gz_spawn_entity,
 
-            left_arm_controller_spawner,
-            # right_arm_controller_spawner,
-            # joint_state_broadcaster_spawner,
+            arm_controllers,
+            # left_hand_controllers,
+            # right_hand_controllers,
 
             delay_rviz_after_joint_state_broadcaster_spawner,
-            delay_joint_state_broadcaster_after_left_controller_spawner,
-            delay_joint_state_broadcaster_after_right_controller_spawner,
-            delay_joint_state_broadcaster_after_left_hand_controller_spawner,
-            delay_joint_state_broadcaster_after_right_hand_controller_spawner
-            # rviz_node
+            delay_left_hand_after_arms,
+            delay_right_hand_after_left_hand,
+            delay_joint_state_broadcaster_after_hands
         ]
 
     return LaunchDescription([

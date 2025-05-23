@@ -12,39 +12,61 @@
         </xacro:unless>
       </hardware>
 
-      <!-- Each joint definition -->
+      <!-- Thumb joints -->
       <joint name="${prefix}L_thumb_proximal_yaw_joint">
-        <command_interface name="position"/>
+        <command_interface name="position">
+          <param name="min">-0.1</param>
+          <param name="max">1.3</param>
+        </command_interface>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
 
       <joint name="${prefix}L_thumb_proximal_pitch_joint">
-        <command_interface name="position"/>
+        <command_interface name="position">
+          <param name="min">0.0</param>
+          <param name="max">0.5</param>
+        </command_interface>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
 
+      <!-- Index finger joint -->
       <joint name="${prefix}L_index_proximal_joint">
-        <command_interface name="position"/>
+        <command_interface name="position">
+          <param name="min">0.0</param>
+          <param name="max">1.7</param>
+        </command_interface>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
 
+      <!-- Middle finger joint -->
       <joint name="${prefix}L_middle_proximal_joint">
-        <command_interface name="position"/>
+        <command_interface name="position">
+          <param name="min">0.0</param>
+          <param name="max">1.7</param>
+        </command_interface>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
 
+      <!-- Ring finger joint -->
       <joint name="${prefix}L_ring_proximal_joint">
-        <command_interface name="position"/>
+        <command_interface name="position">
+          <param name="min">0.0</param>
+          <param name="max">1.7</param>
+        </command_interface>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
 
+      <!-- Pinky finger joint -->
       <joint name="${prefix}L_pinky_proximal_joint">
-        <command_interface name="position"/>
+        <command_interface name="position">
+          <param name="min">0.0</param>
+          <param name="max">1.7</param>
+        </command_interface>
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
