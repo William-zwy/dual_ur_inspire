@@ -31,8 +31,34 @@
         <state_interface name="velocity"/>
       </joint>
 
+      <joint name="${prefix}L_thumb_intermediate_joint">
+        <command_interface name="position">
+          <param name="min">0.0</param>
+          <param name="max">0.8</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="${prefix}L_thumb_distal_joint">
+        <command_interface name="position">
+          <param name="min">0.0</param>
+          <param name="max">0.8</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
       <!-- Index finger joint -->
       <joint name="${prefix}L_index_proximal_joint">
+        <command_interface name="position">
+          <param name="min">0.0</param>
+          <param name="max">1.7</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="${prefix}L_index_intermediate_joint">
         <command_interface name="position">
           <param name="min">0.0</param>
           <param name="max">1.7</param>
@@ -51,8 +77,26 @@
         <state_interface name="velocity"/>
       </joint>
 
+      <joint name="${prefix}L_middle_intermediate_joint">
+        <command_interface name="position">
+          <param name="min">0.0</param>
+          <param name="max">1.7</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
       <!-- Ring finger joint -->
       <joint name="${prefix}L_ring_proximal_joint">
+        <command_interface name="position">
+          <param name="min">0.0</param>
+          <param name="max">1.7</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
+      <joint name="${prefix}L_ring_intermediate_joint">
         <command_interface name="position">
           <param name="min">0.0</param>
           <param name="max">1.7</param>
@@ -70,6 +114,16 @@
         <state_interface name="position"/>
         <state_interface name="velocity"/>
       </joint>
+
+      <joint name="${prefix}L_pinky_intermediate_joint">
+        <command_interface name="position">
+          <param name="min">0.0</param>
+          <param name="max">1.7</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
     </ros2_control>
   </xacro:macro>
 
