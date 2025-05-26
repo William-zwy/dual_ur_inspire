@@ -14,7 +14,7 @@
     </inertial>
   </xacro:macro>
 
-  <xacro:macro name="ur5e_robot" params="prefix joint_limited use_gazebo
+  <xacro:macro name="ur5e_robot" params="prefix joint_limited use_gazebo reverse_shoulder_lift
     shoulder_pan_lower_limit:=${-pi}    shoulder_pan_upper_limit:=${pi}
     shoulder_lift_lower_limit:=${-pi}    shoulder_lift_upper_limit:=${pi}
     elbow_joint_lower_limit:=${-pi}    elbow_joint_upper_limit:=${pi}
@@ -147,7 +147,12 @@
     <joint name="${prefix}shoulder_lift_joint" type="revolute">
       <parent link="${prefix}shoulder_link" />
       <child link = "${prefix}upper_arm_link" />
-      <origin xyz="0.0 ${shoulder_offset} 0.0" rpy="0.0 ${pi / 2.0} 0.0" />
+      <xacro:if value="${reverse_shoulder_lift}">
+        <origin xyz="0.0 ${shoulder_offset} 0.0" rpy="0.0 ${pi / 2.0} ${pi}" />
+      </xacro:if>
+      <xacro:unless value="${reverse_shoulder_lift}">
+        <origin xyz="0.0 ${shoulder_offset} 0.0" rpy="0.0 ${pi / 2.0} 0.0" />
+      </xacro:unless>
       <axis xyz="0 1 0" />
       <xacro:unless value="${joint_limited}">
         <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="150.0" velocity="3.14"/>
