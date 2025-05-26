@@ -157,105 +157,7 @@ def launch_setup(context, *args, **kwargs):
         parameters=[{"use_sim_time": True}],
     )
 
-    # Left hand joint controllers
-    left_thumb_yaw_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["left_hand_L_thumb_proximal_yaw_joint_controller", "-c", "/controller_manager"],
-    )
-    left_thumb_pitch_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["left_hand_L_thumb_proximal_pitch_joint_controller", "-c", "/controller_manager"],
-    )
-    left_index_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["left_hand_L_index_proximal_joint_controller", "-c", "/controller_manager"],
-    )
-    left_middle_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["left_hand_L_middle_proximal_joint_controller", "-c", "/controller_manager"],
-    )
-    left_ring_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["left_hand_L_ring_proximal_joint_controller", "-c", "/controller_manager"],
-    )
-    left_pinky_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["left_hand_L_pinky_proximal_joint_controller", "-c", "/controller_manager"],
-    )
 
-    # Right hand joint controllers
-    right_thumb_yaw_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["right_hand_R_thumb_proximal_yaw_joint_controller", "-c", "/controller_manager"],
-    )
-    right_thumb_pitch_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["right_hand_R_thumb_proximal_pitch_joint_controller", "-c", "/controller_manager"],
-    )
-    right_index_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["right_hand_R_index_proximal_joint_controller", "-c", "/controller_manager"],
-    )
-    right_middle_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["right_hand_R_middle_proximal_joint_controller", "-c", "/controller_manager"],
-    )
-    right_ring_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["right_hand_R_ring_proximal_joint_controller", "-c", "/controller_manager"],
-    )
-    right_pinky_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["right_hand_R_pinky_proximal_joint_controller", "-c", "/controller_manager"],
-    )
-
-    joint_state_broadcaster_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
-    )
-
-    # Create controller groups
-    arm_controllers = GroupAction(
-        actions=[
-            left_arm_controller_spawner,
-            right_arm_controller_spawner,
-        ]
-    )
-
-    left_hand_controllers = GroupAction(
-        actions=[
-            left_thumb_yaw_controller_spawner,
-            left_thumb_pitch_controller_spawner,
-            left_index_controller_spawner,
-            left_middle_controller_spawner,
-            left_ring_controller_spawner,
-            left_pinky_controller_spawner,
-        ]
-    )
-
-    right_hand_controllers = GroupAction(
-        actions=[
-            right_thumb_yaw_controller_spawner,
-            right_thumb_pitch_controller_spawner,
-            right_index_controller_spawner,
-            right_middle_controller_spawner,
-            right_ring_controller_spawner,
-            right_pinky_controller_spawner,
-        ]
-    )
 
     # Delay rviz start after `joint_state_broadcaster`
     delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
@@ -266,84 +168,18 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Delay start of controllers
-    delay_left_hand_after_arms = RegisterEventHandler(
+    delay_right_arm_after_left_arm = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=left_arm_controller_spawner,
+            on_exit=[right_arm_controller_spawner],
+        )
+    )
+
+    delay_joint_state_broadcaster_after_right_arm = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=right_arm_controller_spawner,
-            on_exit=[left_hand_controllers],
-        )
-    )
-
-    delay_right_hand_after_left_hand = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=left_pinky_controller_spawner,
-            on_exit=[right_hand_controllers],
-        )
-    )
-
-    delay_joint_state_broadcaster_after_hands = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=right_pinky_controller_spawner,
             on_exit=[joint_state_broadcaster_spawner],
         )
-    )
-
-    # gazebo
-    # gazebo = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         [FindPackageShare("ros_gz_sim"), "/launch/gz_sim.launch.py"]
-    #     ),
-    #     launch_arguments=[("gz_args", " -r -v 3 empty.sdf")],
-    #     condition=IfCondition(use_gazebo),
-    # )
-    # gazebo_headless = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         [FindPackageShare("ros_gz_sim"), "/launch/gz_sim.launch.py"]
-    #     ),
-    #     launch_arguments=[("gz_args", ["--headless-rendering -s -r -v 3 empty.sdf"])],
-    #     condition=UnlessCondition(use_gazebo),
-    # )
-    dual_ur_inspire_description_dir = get_package_share_directory('dual_ur_inspire_description')
-    gazebo = IncludeLaunchDescription(
-    PythonLaunchDescriptionSource(
-        [FindPackageShare("ros_gz_sim"), "/launch/gz_sim.launch.py"]
-    ),
-    launch_arguments=[("gz_args", [" -r -v 3 " + os.path.join(
-        dual_ur_inspire_description_dir,
-        "world",
-        "ur_dual_inspire_world.sdf"
-    )])],
-    condition=IfCondition(use_gazebo),
-    )
-    gazebo_headless = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [FindPackageShare("ros_gz_sim"), "/launch/gz_sim.launch.py"]
-        ),
-        launch_arguments=[("gz_args", ["--headless-rendering -s -r -v 3 " + os.path.join(
-            dual_ur_inspire_description_dir,
-            "world",
-            "ur_dual_inspire_world.sdf"
-        )])],
-        condition=UnlessCondition(use_gazebo),
-    )
-
-    # Gazebo bridge
-    gazebo_bridge = Node(
-        package="ros_gz_bridge",
-        executable="parameter_bridge",
-        arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"],
-        output="screen",
-    )
-
-    gz_spawn_entity = Node(
-        package="ros_gz_sim",
-        executable="create",
-        output="screen",
-        arguments=[
-            "-topic",
-            "/robot_description",
-            "-name",
-            "dual_arm",
-        ],
     )
 
     nodes_to_start = [
@@ -352,16 +188,10 @@ def launch_setup(context, *args, **kwargs):
         run_move_group_node,
         ros2_control_node,
 
-        gazebo,
-        gazebo_headless,
-        gazebo_bridge,
-        gz_spawn_entity,
-
-        arm_controllers,
+        left_arm_controller_spawner,
         delay_rviz_after_joint_state_broadcaster_spawner,
-        delay_left_hand_after_arms,
-        delay_right_hand_after_left_hand,
-        delay_joint_state_broadcaster_after_hands
+        delay_right_arm_after_left_arm,
+        delay_joint_state_broadcaster_after_right_arm,
     ]
 
     return nodes_to_start
