@@ -36,7 +36,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "use_gazebo",
-            default_value='true',
+            default_value='false',
             description='If true, use ignite gazebo hardware.'
         )
     )

@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <xacro:macro name="ur_arm_ros2_control" params="prefix use_gazebo:=^|true">
+  <xacro:macro name="ur_arm_ros2_control" params="prefix command_topic use_gazebo:=^|true">
+    <xacro:property name="joint_cmd_topic" value="/${command_topic}" />
     <ros2_control name="${prefix}ur_arm_system" type="system">
       <hardware>
         <xacro:if value="${use_gazebo}">
@@ -9,7 +10,7 @@
         </xacro:if>
         <xacro:unless value="${use_gazebo}">
           <plugin>topic_based_ros2_control/TopicBasedSystem</plugin>
-          <param name="joint_commands_topic">/joint_command</param>
+          <param name="joint_commands_topic">${joint_cmd_topic}</param>
           <param name="joint_states_topic">/joint_states</param>
         </xacro:unless>
       </hardware>
