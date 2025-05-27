@@ -4,6 +4,38 @@ Dual_ur_inspire::Dual_ur_inspire(const rclcpp::NodeOptions &node_options) : Node
 {
     port_ = 12345;
     server_thread_ = std::thread(&Dual_ur_inspire::start_tcp_server, this);
+
+    left_hand_cmd_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("left_hand_cmd", 10);
+    right_hand_cmd_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("right_hand_cmd", 10);
+    send_hand_cmd_timer_ = this->create_wall_timer(std::chrono::duration<double>(1.0 / 20.0), 
+                                    std::bind(&Dual_ur_inspire::hand_cmd_timer_callback, this));
+        
+    left_pose_.resize(7, 0.0);
+    right_pose_.resize(7, 0.0);
+    left_qpos_.resize(12, 0.0);
+    right_qpos_.resize(12, 0.0);
+
+    left_hand_cmd_.name = {            
+            "left_hand_L_thumb_proximal_yaw_joint",
+            "left_hand_L_thumb_proximal_pitch_joint",
+            "left_hand_L_index_proximal_joint",
+            "left_hand_L_middle_proximal_joint",
+            "left_hand_L_ring_proximal_joint",
+            "left_hand_L_pinky_proximal_joint",
+        };
+    size_t num_left_hand_joints = left_hand_cmd_.name.size();
+    left_hand_cmd_.position.resize(num_left_hand_joints, 0.0);
+
+    right_hand_cmd_.name = {            
+            "right_hand_R_thumb_proximal_yaw_joint",
+            "right_hand_R_thumb_proximal_pitch_joint",
+            "right_hand_R_index_proximal_joint",
+            "right_hand_R_middle_proximal_joint",
+            "right_hand_R_ring_proximal_joint",
+            "right_hand_R_pinky_proximal_joint",
+        };
+    size_t num_right_hand_joints = right_hand_cmd_.name.size();
+    right_hand_cmd_.position.resize(num_right_hand_joints, 0.0);
 }
 
 void Dual_ur_inspire::start_tcp_server()
@@ -85,41 +117,41 @@ void Dual_ur_inspire::parse_and_print(const std::string &message)
         return;
     }
 
-    std::vector<double> left_pose = parse_pose(parts[0]);
-    std::vector<double> right_pose = parse_pose(parts[1]);
+    left_pose_ = parse_pose(parts[0]);
+    right_pose_ = parse_pose(parts[1]);
 
-    if (left_pose.size() != 7 || right_pose.size() != 7)
+    if (left_pose_.size() != 7 || right_pose_.size() != 7)
     {
         RCLCPP_WARN(this->get_logger(), "Invalid pose size");
         return;
     }
 
     RCLCPP_INFO(this->get_logger(), "Left Pose: [%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f]",
-                left_pose[0], left_pose[1], left_pose[2],
-                left_pose[3], left_pose[4], left_pose[5], left_pose[6]);
+                left_pose_[0], left_pose_[1], left_pose_[2],
+                left_pose_[3], left_pose_[4], left_pose_[5], left_pose_[6]);
 
     RCLCPP_INFO(this->get_logger(), "Right Pose: [%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f]",
-                right_pose[0], right_pose[1], right_pose[2],
-                right_pose[3], right_pose[4], right_pose[5], right_pose[6]);
+                right_pose_[0], right_pose_[1], right_pose_[2],
+                right_pose_[3], right_pose_[4], right_pose_[5], right_pose_[6]);
 
     if (parts.size() >= 4)
     {
-        std::vector<double> left_qpos = parse_pose(parts[2]);
-        std::vector<double> right_qpos = parse_pose(parts[3]);
+        left_qpos_ = parse_pose(parts[2]);
+        right_qpos_ = parse_pose(parts[3]);
 
         std::ostringstream left_qpos_stream, right_qpos_stream;
 
-        for (size_t i = 0; i < left_qpos.size(); ++i)
+        for (size_t i = 0; i < left_qpos_.size(); ++i)
         {
-            left_qpos_stream << std::fixed << std::setprecision(3) << left_qpos[i];
-            if (i != left_qpos.size() - 1)
+            left_qpos_stream << std::fixed << std::setprecision(3) << left_qpos_[i];
+            if (i != left_qpos_.size() - 1)
                 left_qpos_stream << ", ";
         }
 
-        for (size_t i = 0; i < right_qpos.size(); ++i)
+        for (size_t i = 0; i < right_qpos_.size(); ++i)
         {
-            right_qpos_stream << std::fixed << std::setprecision(3) << right_qpos[i];
-            if (i != right_qpos.size() - 1)
+            right_qpos_stream << std::fixed << std::setprecision(3) << right_qpos_[i];
+            if (i != right_qpos_.size() - 1)
                 right_qpos_stream << ", ";
         }
 
@@ -145,6 +177,37 @@ std::vector<double> Dual_ur_inspire::parse_pose(const std::string &s)
         }
     }
     return values;
+}
+
+std::vector<double> Dual_ur_inspire::add_poistion_cmd(std::vector<double> qpos)
+{
+    std::vector<double> hand_position_cmd(6);
+
+    hand_position_cmd[0] = qpos[thumb_proximal_yaw_joint];
+    hand_position_cmd[1] = qpos[thumb_proximal_pitch_joint];
+    hand_position_cmd[2] = qpos[index_proximal_joint];
+    hand_position_cmd[3] = qpos[middle_proximal_joint];
+    hand_position_cmd[4] = qpos[ring_proximal_joint];
+    hand_position_cmd[5] = qpos[pinky_proximal_joint];
+
+    return hand_position_cmd;
+}
+
+void Dual_ur_inspire::hand_cmd_timer_callback()
+{
+    left_hand_cmd_.header.stamp = this->now();
+    std::vector<double> left_hand_position_cmd(6);
+    left_hand_position_cmd = add_poistion_cmd(left_qpos_);
+    left_hand_cmd_.position = left_hand_position_cmd;
+
+    left_hand_cmd_publisher_->publish(left_hand_cmd_);
+
+    right_hand_cmd_.header.stamp = this->now();
+    std::vector<double> right_hand_position_cmd(6);
+    right_hand_position_cmd = add_poistion_cmd(right_qpos_);
+    right_hand_cmd_.position = right_hand_position_cmd;
+
+    right_hand_cmd_publisher_->publish(right_hand_cmd_);
 }
 
 int main(int argc, char *argv[])
