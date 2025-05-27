@@ -203,10 +203,10 @@
         upper="0.8"
         effort="1"
         velocity="0.5" />
-      <!-- <mimic
+      <mimic
         joint="${prefix}R_thumb_proximal_pitch_joint"
         multiplier="1.6"
-        offset="0" /> -->
+        offset="0" />
     </joint>
 
     <link name="${prefix}R_thumb_distal">
@@ -260,10 +260,10 @@
         upper="1.2"
         effort="1"
         velocity="0.5" />
-      <!-- <mimic
+      <mimic
         joint="${prefix}R_thumb_proximal_pitch_joint"
         multiplier="2.4"
-        offset="0" /> -->
+        offset="0" />
     </joint>
 
     <link name="${prefix}R_thumb_tip">
@@ -391,10 +391,10 @@
         upper="1.7"
         effort="1"
         velocity="0.5" />
-      <!-- <mimic
+      <mimic
         joint="${prefix}R_index_proximal_joint"
         multiplier="1"
-        offset="0" /> -->
+        offset="0" />
     </joint>
 
     <link name="${prefix}R_index_tip">
@@ -522,10 +522,10 @@
         upper="1.7"
         effort="1"
         velocity="0.5" />
-      <!-- <mimic
+      <mimic
         joint="${prefix}R_middle_proximal_joint"
         multiplier="1"
-        offset="0" /> -->
+        offset="0" />
     </joint>
 
     <link name="${prefix}R_middle_tip">
@@ -653,10 +653,10 @@
         upper="1.7"
         effort="1"
         velocity="0.5" />
-      <!-- <mimic
+      <mimic
         joint="${prefix}R_ring_proximal_joint"
         multiplier="1"
-        offset="0" /> -->
+        offset="0" />
     </joint>
 
     <link name="${prefix}R_ring_tip">
@@ -784,10 +784,10 @@
         upper="1.7"
         effort="1"
         velocity="0.5" />
-      <!-- <mimic
+      <mimic
         joint="${prefix}R_pinky_proximal_joint"
         multiplier="1"
-        offset="0" /> -->
+        offset="0" />
     </joint>
 
     <link name="${prefix}R_pinky_tip">

@@ -9,8 +9,18 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(rclcpp_action REQUIRED)
+find_package(control_msgs REQUIRED)
+find_package(trajectory_msgs REQUIRED)
+
 
 add_executable(moveit_node src/moveit_node.cpp)
+add_executable(dual_ur_inspire_node src/dual_ur_inspire_node.cpp)
+add_executable(test_ros2bridge src/test_ros2bridge.cpp)
+add_executable(tcp_server_node src/tcp_server_node.cpp)
+add_executable(joint_state_filter src/joint_state_filter.cpp)
+
 target_include_directories(moveit_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
@@ -21,8 +31,43 @@ ament_target_dependencies(
   "rclcpp"
 )
 
+ament_target_dependencies(dual_ur_inspire_node rclcpp 
+                            sensor_msgs
+                            rclcpp_action
+                            control_msgs
+                            trajectory_msgs
+                            moveit_ros_planning_interface
+                            )
+
+ament_target_dependencies(joint_state_filter rclcpp 
+                            sensor_msgs
+                          )
+
+ament_target_dependencies(test_ros2bridge rclcpp 
+                            sensor_msgs
+                            rclcpp_action
+                            control_msgs
+                            trajectory_msgs
+                            )
+ament_target_dependencies(tcp_server_node rclcpp)
+
 install(TARGETS moveit_node
   DESTINATION lib/${PROJECT_NAME})
+install(TARGETS dual_ur_inspire_node
+  DESTINATION lib/${PROJECT_NAME})
+install(TARGETS test_ros2bridge
+  DESTINATION lib/${PROJECT_NAME})
+install(TARGETS tcp_server_node
+  DESTINATION lib/${PROJECT_NAME})
+install(TARGETS joint_state_filter
+  DESTINATION lib/${PROJECT_NAME}) 
+
+include_directories(
+    include
+  )
+install(DIRECTORY include/
+  DESTINATION include
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

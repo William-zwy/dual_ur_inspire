@@ -183,7 +183,6 @@ def launch_setup(context, *args, **kwargs):
     )
 
     nodes_to_start = [
-        # rviz_node,
         robot_state_publisher,
         run_move_group_node,
         ros2_control_node,
