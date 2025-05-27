@@ -2,9 +2,11 @@
 
 Dual_ur_inspire::Dual_ur_inspire(const rclcpp::NodeOptions &node_options) : Node("dual_ur_inspire_node", node_options)
 {
+    //tcp
     port_ = 12345;
     server_thread_ = std::thread(&Dual_ur_inspire::start_tcp_server, this);
 
+    //hand command
     left_hand_cmd_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("left_hand_cmd", 10);
     right_hand_cmd_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("right_hand_cmd", 10);
     send_hand_cmd_timer_ = this->create_wall_timer(std::chrono::duration<double>(1.0 / 20.0), 
@@ -36,6 +38,20 @@ Dual_ur_inspire::Dual_ur_inspire(const rclcpp::NodeOptions &node_options) : Node
         };
     size_t num_right_hand_joints = right_hand_cmd_.name.size();
     right_hand_cmd_.position.resize(num_right_hand_joints, 0.0);
+
+    //moveit
+    left_arm_timer_ = this->create_wall_timer(std::chrono::duration<double>(1.0 / 20.0), 
+                                    std::bind(&Dual_ur_inspire::left_arm_timer_callback, this));
+    right_arm_timer_ = this->create_wall_timer(std::chrono::duration<double>(1.0 / 20.0), 
+                                    std::bind(&Dual_ur_inspire::right_arm_timer_callback, this));
+}
+
+void Dual_ur_inspire::moveit_init()
+{
+    left_move_group_interface_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(
+                                shared_from_this(), "left_arm");
+    right_move_group_interface_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(
+                                shared_from_this(), "right_arm");
 }
 
 void Dual_ur_inspire::start_tcp_server()
@@ -117,8 +133,26 @@ void Dual_ur_inspire::parse_and_print(const std::string &message)
         return;
     }
 
-    left_pose_ = parse_pose(parts[0]);
-    right_pose_ = parse_pose(parts[1]);
+    // left_pose_ = parse_pose(parts[0]);
+    // right_pose_ = parse_pose(parts[1]);
+    std::vector<double> new_left_pose = parse_pose(parts[0]);
+    std::vector<double> new_right_pose = parse_pose(parts[1]);
+
+    {
+        std::lock_guard<std::mutex> lock(pose_mutex_);
+
+        if (is_pose_changed(new_left_pose, last_left_pose_)) {
+            left_pose_ = new_left_pose;
+            last_left_pose_ = new_left_pose;
+            left_new_goal_received_ = true;
+        }
+
+        if (is_pose_changed(new_right_pose, last_right_pose_)) {
+            right_pose_ = new_right_pose;
+            last_right_pose_ = new_right_pose;
+            right_new_goal_received_ = true;
+        }
+    }
 
     if (left_pose_.size() != 7 || right_pose_.size() != 7)
     {
@@ -126,13 +160,13 @@ void Dual_ur_inspire::parse_and_print(const std::string &message)
         return;
     }
 
-    RCLCPP_INFO(this->get_logger(), "Left Pose: [%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f]",
-                left_pose_[0], left_pose_[1], left_pose_[2],
-                left_pose_[3], left_pose_[4], left_pose_[5], left_pose_[6]);
+    // RCLCPP_INFO(this->get_logger(), "Left Pose: [%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f]",
+    //             left_pose_[0], left_pose_[1], left_pose_[2],
+    //             left_pose_[3], left_pose_[4], left_pose_[5], left_pose_[6]);
 
-    RCLCPP_INFO(this->get_logger(), "Right Pose: [%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f]",
-                right_pose_[0], right_pose_[1], right_pose_[2],
-                right_pose_[3], right_pose_[4], right_pose_[5], right_pose_[6]);
+    // RCLCPP_INFO(this->get_logger(), "Right Pose: [%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f]",
+    //             right_pose_[0], right_pose_[1], right_pose_[2],
+    //             right_pose_[3], right_pose_[4], right_pose_[5], right_pose_[6]);
 
     if (parts.size() >= 4)
     {
@@ -155,8 +189,8 @@ void Dual_ur_inspire::parse_and_print(const std::string &message)
                 right_qpos_stream << ", ";
         }
 
-        RCLCPP_INFO(this->get_logger(), "Left Qpos: [%s]", left_qpos_stream.str().c_str());
-        RCLCPP_INFO(this->get_logger(), "Right Qpos: [%s]", right_qpos_stream.str().c_str());
+        // RCLCPP_INFO(this->get_logger(), "Left Qpos: [%s]", left_qpos_stream.str().c_str());
+        // RCLCPP_INFO(this->get_logger(), "Right Qpos: [%s]", right_qpos_stream.str().c_str());
     }
 }
 
@@ -179,7 +213,7 @@ std::vector<double> Dual_ur_inspire::parse_pose(const std::string &s)
     return values;
 }
 
-std::vector<double> Dual_ur_inspire::add_poistion_cmd(std::vector<double> qpos)
+std::vector<double> Dual_ur_inspire::add_poistion_cmd(const std::vector<double>& qpos)
 {
     std::vector<double> hand_position_cmd(6);
 
@@ -210,10 +244,108 @@ void Dual_ur_inspire::hand_cmd_timer_callback()
     right_hand_cmd_publisher_->publish(right_hand_cmd_);
 }
 
+bool Dual_ur_inspire::is_pose_changed(const std::vector<double>& a, const std::vector<double>& b, double tol) 
+{
+    if (a.size() != b.size()) return true;
+    for (size_t i = 0; i < a.size(); ++i) {
+        if (std::abs(a[i] - b[i]) > tol) return true;
+    }
+    return false;
+}
+
+// 输入 [x, y, z, qx, qy, qz, qw]
+geometry_msgs::msg::Pose Dual_ur_inspire::translate_pose_to_msg(const std::vector<double>& Quaternion_pose)
+{
+    geometry_msgs::msg::Pose goal_pose;
+
+    goal_pose.position.x = Quaternion_pose[0];  // x
+    goal_pose.position.y = Quaternion_pose[1];  // y 
+    goal_pose.position.z = Quaternion_pose[2];  // z
+
+    goal_pose.orientation.x = Quaternion_pose[3];  // qx
+    goal_pose.orientation.y = Quaternion_pose[4];  // qy
+    goal_pose.orientation.z = Quaternion_pose[5];  // qz
+    goal_pose.orientation.w = Quaternion_pose[6];  // qw
+
+    return goal_pose;
+}
+
+void Dual_ur_inspire::left_arm_timer_callback()
+{
+    geometry_msgs::msg::Pose left_goal_pose;
+    bool triggered = false;
+
+    {
+        std::lock_guard<std::mutex> lock(pose_mutex_);
+        if (left_new_goal_received_) {
+            left_new_goal_received_ = false;
+            RCLCPP_INFO(this->get_logger(), "receive goal");
+            left_goal_pose = translate_pose_to_msg(left_pose_);
+            triggered = true;
+        }
+    }
+
+    if (triggered) {
+        left_move_group_interface_->setPoseTarget(left_goal_pose);
+
+        moveit::planning_interface::MoveGroupInterface::Plan plan;
+        bool success = static_cast<bool>(left_move_group_interface_->plan(plan));
+
+        RCLCPP_INFO(this->get_logger(), "Left Planning frame: %s", left_move_group_interface_->getPlanningFrame().c_str());
+        RCLCPP_INFO(this->get_logger(), "Left End effector link: %s", left_move_group_interface_->getEndEffectorLink().c_str());
+        RCLCPP_INFO(this->get_logger(), "Left Pose reference frame: %s", left_move_group_interface_->getPoseReferenceFrame().c_str());
+
+        if (success)
+        {
+            left_move_group_interface_->execute(plan);
+        }
+        else
+        {
+            RCLCPP_ERROR(this->get_logger(), "Left Planing failed!");
+        }
+    }
+}
+
+void Dual_ur_inspire::right_arm_timer_callback()
+{
+    geometry_msgs::msg::Pose right_goal_pose;
+    bool triggered = false;
+
+    {
+        std::lock_guard<std::mutex> lock(pose_mutex_);
+        if (right_new_goal_received_) {
+            right_new_goal_received_ = false;
+            right_goal_pose = translate_pose_to_msg(right_pose_);
+            triggered = true;
+        }
+    }
+
+    if (triggered) {
+        right_move_group_interface_->setPoseTarget(right_goal_pose);
+
+        moveit::planning_interface::MoveGroupInterface::Plan plan;
+        bool success = static_cast<bool>(right_move_group_interface_->plan(plan));
+
+        RCLCPP_INFO(this->get_logger(), "Right Planning frame: %s", right_move_group_interface_->getPlanningFrame().c_str());
+        RCLCPP_INFO(this->get_logger(), "Right End effector link: %s", right_move_group_interface_->getEndEffectorLink().c_str());
+        RCLCPP_INFO(this->get_logger(), "Right Pose reference frame: %s", right_move_group_interface_->getPoseReferenceFrame().c_str());
+
+        if (success)
+        {
+            right_move_group_interface_->execute(plan);
+        }
+        else
+        {
+            RCLCPP_ERROR(this->get_logger(), "Right Planing failed!");
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
     auto node = std::make_shared<Dual_ur_inspire>(rclcpp::NodeOptions());
+    node->moveit_init();
     rclcpp::spin(node);
     rclcpp::shutdown();
     return 0;

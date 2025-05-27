@@ -23,6 +23,7 @@ class Dual_ur_inspire: public rclcpp::Node
     public:
     explicit Dual_ur_inspire(const rclcpp::NodeOptions & node_options);
     ~Dual_ur_inspire() = default;
+    void moveit_init();
 
     enum HandJoint
         {
@@ -44,8 +45,13 @@ class Dual_ur_inspire: public rclcpp::Node
     void start_tcp_server();
     void parse_and_print(const std::string &message);
     std::vector<double> parse_pose(const std::string &s);
-    std::vector<double> add_poistion_cmd(std::vector<double> qpos);
+    std::vector<double> add_poistion_cmd(const std::vector<double>& qpos);
     void hand_cmd_timer_callback();
+
+    bool is_pose_changed(const std::vector<double>& a, const std::vector<double>& b, double tol = 1e-3);
+    geometry_msgs::msg::Pose translate_pose_to_msg(const std::vector<double>& Quaternion_pose);
+    void left_arm_timer_callback();
+    void right_arm_timer_callback();
 
     //tcp
     int port_;
@@ -62,4 +68,19 @@ class Dual_ur_inspire: public rclcpp::Node
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr right_hand_cmd_publisher_;
     sensor_msgs::msg::JointState left_hand_cmd_;
     sensor_msgs::msg::JointState right_hand_cmd_;
+
+    //moveit
+    rclcpp::TimerBase::SharedPtr left_arm_timer_;
+    rclcpp::TimerBase::SharedPtr right_arm_timer_;
+    std::shared_ptr<moveit::planning_interface::MoveGroupInterface> left_move_group_interface_;
+    std::shared_ptr<moveit::planning_interface::MoveGroupInterface> right_move_group_interface_;
+
+    std::vector<double> last_left_pose_;
+    std::atomic<bool> left_new_goal_received_ = false;
+
+    std::vector<double> last_right_pose_;
+    std::atomic<bool> right_new_goal_received_ = false;
+
+    std::mutex pose_mutex_;
+
 };
