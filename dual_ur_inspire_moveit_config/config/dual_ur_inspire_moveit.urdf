@@ -101,7 +101,7 @@
   <joint name="left_shoulder_lift_joint" type="revolute">
     <parent link="left_shoulder_link"/>
     <child link="left_upper_arm_link"/>
-    <origin rpy="0.0 1.5707963267948966 0.0" xyz="0.0 0.138 0.0"/>
+    <origin rpy="3.141592653589793 4.71238898038469 3.141592653589793" xyz="0.0 0.138 0.0"/>
     <axis xyz="0 1 0"/>
     <limit effort="150.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.14"/>
     <dynamics damping="0.0" friction="0.0"/>
@@ -157,7 +157,7 @@
   <joint name="left_wrist_1_joint" type="revolute">
     <parent link="left_forearm_link"/>
     <child link="left_wrist_1_link"/>
-    <origin rpy="0.0 1.5707963267948966 0.0" xyz="0.0 0.0 0.392"/>
+    <origin rpy="3.141592653589793 4.71238898038469 3.141592653589793" xyz="0.0 0.0 0.392"/>
     <axis xyz="0 1 0"/>
     <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="6.28"/>
     <dynamics damping="0.0" friction="0.0"/>
@@ -213,7 +213,7 @@
   <joint name="left_wrist_3_joint" type="revolute">
     <parent link="left_wrist_2_link"/>
     <child link="left_wrist_3_link"/>
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.1"/>
+    <origin rpy="0.0 3.141592653589793 0.0" xyz="0.0 0.0 0.1"/>
     <axis xyz="0 1 0"/>
     <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="6.28"/>
     <dynamics damping="0.0" friction="0.0"/>
@@ -400,7 +400,7 @@
   <joint name="right_shoulder_lift_joint" type="revolute">
     <parent link="right_shoulder_link"/>
     <child link="right_upper_arm_link"/>
-    <origin rpy="3.141592653589793 4.71238898038469 3.141592653589793" xyz="0.0 0.138 0.0"/>
+    <origin rpy="0.0 1.5707963267948966 0.0" xyz="0.0 0.138 0.0"/>
     <axis xyz="0 1 0"/>
     <limit effort="150.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.14"/>
     <dynamics damping="0.0" friction="0.0"/>
@@ -456,7 +456,7 @@
   <joint name="right_wrist_1_joint" type="revolute">
     <parent link="right_forearm_link"/>
     <child link="right_wrist_1_link"/>
-    <origin rpy="3.141592653589793 4.71238898038469 3.141592653589793" xyz="0.0 0.0 0.392"/>
+    <origin rpy="0.0 1.5707963267948966 0.0" xyz="0.0 0.0 0.392"/>
     <axis xyz="0 1 0"/>
     <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="6.28"/>
     <dynamics damping="0.0" friction="0.0"/>
@@ -1095,7 +1095,7 @@
   </joint>
   <ros2_control name="left_hand_L_hand_system" type="system">
     <hardware>
-      <plugin>gz_ros2_control/IsaacsimHardWare</plugin>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
     </hardware>
     <!-- Thumb joints -->
     <joint name="left_hand_L_thumb_proximal_yaw_joint">
@@ -1645,7 +1645,7 @@
   </joint>
   <ros2_control name="right_hand_R_hand_system" type="system">
     <hardware>
-      <plugin>gz_ros2_control/IsaacsimHardWare</plugin>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
     </hardware>
     <!-- Thumb joints -->
     <joint name="right_hand_R_thumb_proximal_yaw_joint">
