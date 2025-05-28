@@ -1,4 +1,3 @@
-
 #include <memory>
 
 #include <rclcpp/rclcpp.hpp>
@@ -46,7 +45,7 @@ class Dual_ur_inspire: public rclcpp::Node
     void parse_and_print(const std::string &message);
     std::vector<double> parse_pose(const std::string &s);
     std::vector<double> add_poistion_cmd(const std::vector<double>& qpos);
-    void hand_cmd_timer_callback();
+    // void hand_cmd_timer_callback();
 
     bool is_pose_changed(const std::vector<double>& a, const std::vector<double>& b, double tol = 1e-3);
     geometry_msgs::msg::Pose translate_pose_to_msg(const std::vector<double>& Quaternion_pose);

@@ -20,6 +20,7 @@ add_executable(dual_ur_inspire_node src/dual_ur_inspire_node.cpp)
 add_executable(test_ros2bridge src/test_ros2bridge.cpp)
 add_executable(tcp_server_node src/tcp_server_node.cpp)
 add_executable(joint_state_filter src/joint_state_filter.cpp)
+add_executable(hands_node src/hands_node.cpp)
 
 target_include_directories(moveit_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -39,6 +40,10 @@ ament_target_dependencies(dual_ur_inspire_node rclcpp
                             moveit_ros_planning_interface
                             )
 
+ament_target_dependencies(hands_node rclcpp 
+                          sensor_msgs
+                          )
+
 ament_target_dependencies(joint_state_filter rclcpp 
                             sensor_msgs
                           )
@@ -54,6 +59,8 @@ ament_target_dependencies(tcp_server_node rclcpp)
 install(TARGETS moveit_node
   DESTINATION lib/${PROJECT_NAME})
 install(TARGETS dual_ur_inspire_node
+  DESTINATION lib/${PROJECT_NAME})
+install(TARGETS hands_node
   DESTINATION lib/${PROJECT_NAME})
 install(TARGETS test_ros2bridge
   DESTINATION lib/${PROJECT_NAME})

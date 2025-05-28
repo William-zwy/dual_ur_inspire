@@ -7,10 +7,10 @@ Dual_ur_inspire::Dual_ur_inspire(const rclcpp::NodeOptions &node_options) : Node
     server_thread_ = std::thread(&Dual_ur_inspire::start_tcp_server, this);
 
     //hand command
-    left_hand_cmd_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("left_hand_cmd", 10);
-    right_hand_cmd_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("right_hand_cmd", 10);
-    send_hand_cmd_timer_ = this->create_wall_timer(std::chrono::duration<double>(1.0 / 20.0), 
-                                    std::bind(&Dual_ur_inspire::hand_cmd_timer_callback, this));
+    // left_hand_cmd_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("left_hand_cmd", 10);
+    // right_hand_cmd_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("right_hand_cmd", 10);
+    // send_hand_cmd_timer_ = this->create_wall_timer(std::chrono::duration<double>(1.0 / 20.0), 
+    //                                 std::bind(&Dual_ur_inspire::hand_cmd_timer_callback, this));
         
     left_pose_.resize(7, 0.0);
     right_pose_.resize(7, 0.0);
@@ -239,24 +239,24 @@ std::vector<double> Dual_ur_inspire::add_poistion_cmd(const std::vector<double>&
     return hand_position_cmd;
 }
 
-void Dual_ur_inspire::hand_cmd_timer_callback()
-{
-    left_hand_cmd_.header.stamp = this->now();
-    // std::vector<double> left_hand_position_cmd(6);
-    // left_hand_position_cmd = add_poistion_cmd(left_qpos_);
-    // left_hand_cmd_.position = left_hand_position_cmd;
-    left_hand_cmd_.position = left_qpos_;
+// void Dual_ur_inspire::hand_cmd_timer_callback()
+// {
+//     left_hand_cmd_.header.stamp = this->now();
+//     // std::vector<double> left_hand_position_cmd(6);
+//     // left_hand_position_cmd = add_poistion_cmd(left_qpos_);
+//     // left_hand_cmd_.position = left_hand_position_cmd;
+//     left_hand_cmd_.position = left_qpos_;
 
-    left_hand_cmd_publisher_->publish(left_hand_cmd_);
+//     left_hand_cmd_publisher_->publish(left_hand_cmd_);
 
-    right_hand_cmd_.header.stamp = this->now();
-    // std::vector<double> right_hand_position_cmd(6);
-    // right_hand_position_cmd = add_poistion_cmd(right_qpos_);
-    // right_hand_cmd_.position = right_hand_position_cmd;
-    right_hand_cmd_.position = right_qpos_;
+//     right_hand_cmd_.header.stamp = this->now();
+//     // std::vector<double> right_hand_position_cmd(6);
+//     // right_hand_position_cmd = add_poistion_cmd(right_qpos_);
+//     // right_hand_cmd_.position = right_hand_position_cmd;
+//     right_hand_cmd_.position = right_qpos_;
 
-    right_hand_cmd_publisher_->publish(right_hand_cmd_);
-}
+//     right_hand_cmd_publisher_->publish(right_hand_cmd_);
+// }
 
 bool Dual_ur_inspire::is_pose_changed(const std::vector<double>& a, const std::vector<double>& b, double tol) 
 {

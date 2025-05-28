@@ -16,11 +16,12 @@ from moveit_configs_utils import MoveItConfigsBuilder
 
 def generate_launch_description():
 
+    bringup_pkg = get_package_share_directory('dual_ur_inspire_bringup')
     declared_arguments = []
     declared_arguments.append(
         DeclareLaunchArgument(
             "rviz_config",
-            default_value="dual_arm_moveit.rviz",
+            default_value=os.path.join(bringup_pkg, "rviz", "dual_arm_moveit.rviz"), 
             description="RViz configuration file",
         )
     )
@@ -145,6 +146,13 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
     )
 
+    hands_node = Node(
+        package="moveit_node",
+        executable='hands_node',
+        name='hands_node',
+        output="screen",
+    )
+
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -202,11 +210,12 @@ def launch_setup(context, *args, **kwargs):
         ros2_control_node,
         joint_state_filter_node,
         dual_ur_inspire_node,
+        hands_node,
 
         left_arm_controller_spawner,
         delay_right_arm_after_left_arm,
         delay_joint_state_broadcaster_after_right_arm,
-        # delay_rviz_after_joint_state_broadcaster_spawner,
+        delay_rviz_after_joint_state_broadcaster_spawner,
     ]
 
     return nodes_to_start

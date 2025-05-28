@@ -15,7 +15,7 @@ public:
     TcpServerNode()
         : Node("tcp_server_node")
     {
-        port_ = 12345;
+        port_ = 23456;
         server_thread_ = std::thread(&TcpServerNode::start_server, this);
     }
 

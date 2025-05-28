@@ -10,40 +10,36 @@ Tested on Ubuntu 22.04 with ROS 2 Humble.
 
 
 ## Robot simulation
-### Run gazebo, moveit, Rviz   
+### Run moveit, Rviz   
 ```bash
-ros2 launch robot_gazebo dual_ur_robotiq.launch.py world:=table_box
-ros2 launch robot_moveit_config robot_moveit_planning_execution.launch.py sim:=true
-ros2 launch robot_moveit_config moveit_rviz.launch.py
+ros2 launch dual_ur_inspire_bringup dual_ur_inspire_bringup.launch.py
 ```   
-### Pick and place simulation
+### Test
 ```bash
-ros2 run bimanual_manipulation pick_place_collision
+ros2 launch dual_ur_inspire_description dual_arm_moveitctrl.launch.py
+
+ros2 launch dual_ur_inspire_description dual_arm_control.launch.py  
 ```
 
-## Real robot execution: Bring up grippers and robots, Run moveit and Rviz   
-Run the lines below in the respective terminals.
+## CPP node pkg
 
 ```bash
-# Terminal 1
-ros2 launch robotiq_3f_gripper_control dual_gripper_tcp.launch.py
-ros2 launch robotiq_3f_gripper_joint_state_publisher dual_gripper_joint_state_publisher.launch.py
-ros2 launch robotiq_3f_gripper_visualization robotiq_gripper_upload.launch.py
-
-# Terminal 2
-ros2 launch ur_robot_driver robot_bringup.launch.py   
-ros2 launch robot_moveit_config robot_moveit_planning_execution.launch.py sim:=false     
-ros2 launch robot_moveit_config moveit_rviz.launch.py   
+moveit_node
 ```
 
-## Gripper 
-- Mode: basic, pinch, wide scissor
-- Action: close, open   
+## Isaacsim config
 
 ```bash
-ros2 run robotiq_3f_gripper_control Robotiq3FGripperSimpleController.py  
-ros2 run robotiq_3f_gripper_control Robotiq3FGripperStatusListener.py
+src/dual_ur_inspire/isaacsim_model
 ```
+- src/dual_ur_inspire/isaacsim_model/dual_ur_arm_unmimic.usd是配置文件
+- src/dual_ur_inspire/isaacsim_model/dual_ur_inspire_unmimic/dual_ur_inspire_unmimic.usd是模型
 
+## Python 
+在Python_code文件夹下，需要放到以下目录，若不需要isaacgym，直接在最后的while中注释即可。
+```bash
+teleop/teleop_hand.py
+
+```
 ## Contact
-All bug reports, feedback, comments, contributions or remarks are welcome.
+已完成手关节控制节点分离，还需测试quest3中手腕的位姿与机械臂中位姿的对应关系
