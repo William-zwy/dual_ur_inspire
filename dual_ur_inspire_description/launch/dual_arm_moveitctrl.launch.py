@@ -76,7 +76,7 @@ def launch_setup(context, *args, **kwargs):
             publish_robot_description=False, publish_robot_description_semantic=True
         )
         .planning_pipelines(
-            pipelines=["ompl"]
+            pipelines=["ompl","chomp"]
         )
         .joint_limits(
         file_path=os.path.join(moveit_config_pkg, "config", "joint_limits.yaml")

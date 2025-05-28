@@ -16,17 +16,20 @@ public:
         
         // Initialize joint state message
         joint_state_.name = {
-            "left_hand_L_thumb_proximal_pitch_joint",
-            "left_hand_L_index_proximal_joint",
-            "left_hand_L_middle_proximal_joint",
-            "left_hand_L_ring_proximal_joint",
-            "left_hand_L_pinky_proximal_joint",
+            "right_hand_R_index_proximal_joint",
+            "right_hand_R_index_intermediate_joint",
+            "right_hand_R_middle_proximal_joint",
+            "right_hand_R_middle_intermediate_joint",
+            "right_hand_R_ring_proximal_joint",
+            "right_hand_R_ring_intermediate_joint",
+            "right_hand_R_pinky_proximal_joint",
+            "right_hand_R_pinky_intermediate_joint",
         };
 
         size_t num_joints = joint_state_.name.size();
         joint_state_.position.resize(num_joints, 0.0);
         
-        default_joints_ = {0.5, 0.5, 0.5, 0.5, 0.5,};
+        default_joints_ = {1.0, 1.0, 1.0, 1.0,1.0, 1.0, 1.0, 1.0};
         
         // Calculate max and min joints
         max_joints_.resize(num_joints);

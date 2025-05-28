@@ -20,21 +20,33 @@ Dual_ur_inspire::Dual_ur_inspire(const rclcpp::NodeOptions &node_options) : Node
     left_hand_cmd_.name = {            
             "left_hand_L_thumb_proximal_yaw_joint",
             "left_hand_L_thumb_proximal_pitch_joint",
+            "left_hand_L_thumb_intermediate_joint",
+            "left_hand_L_thumb_distal_joint",
             "left_hand_L_index_proximal_joint",
+            "left_hand_L_index_intermediate_joint",
             "left_hand_L_middle_proximal_joint",
+            "left_hand_L_middle_intermediate_joint",
             "left_hand_L_ring_proximal_joint",
+            "left_hand_L_ring_intermediate_joint",
             "left_hand_L_pinky_proximal_joint",
+            "left_hand_L_pinky_intermediate_joint",
         };
     size_t num_left_hand_joints = left_hand_cmd_.name.size();
     left_hand_cmd_.position.resize(num_left_hand_joints, 0.0);
 
-    right_hand_cmd_.name = {            
+    right_hand_cmd_.name = {      
             "right_hand_R_thumb_proximal_yaw_joint",
             "right_hand_R_thumb_proximal_pitch_joint",
+            "right_hand_R_thumb_intermediate_joint",
+            "right_hand_R_thumb_distal_joint",      
             "right_hand_R_index_proximal_joint",
+            "right_hand_R_index_intermediate_joint",
             "right_hand_R_middle_proximal_joint",
+            "right_hand_R_middle_intermediate_joint",
             "right_hand_R_ring_proximal_joint",
+            "right_hand_R_ring_intermediate_joint",
             "right_hand_R_pinky_proximal_joint",
+            "right_hand_R_pinky_intermediate_joint",
         };
     size_t num_right_hand_joints = right_hand_cmd_.name.size();
     right_hand_cmd_.position.resize(num_right_hand_joints, 0.0);
@@ -230,16 +242,18 @@ std::vector<double> Dual_ur_inspire::add_poistion_cmd(const std::vector<double>&
 void Dual_ur_inspire::hand_cmd_timer_callback()
 {
     left_hand_cmd_.header.stamp = this->now();
-    std::vector<double> left_hand_position_cmd(6);
-    left_hand_position_cmd = add_poistion_cmd(left_qpos_);
-    left_hand_cmd_.position = left_hand_position_cmd;
+    // std::vector<double> left_hand_position_cmd(6);
+    // left_hand_position_cmd = add_poistion_cmd(left_qpos_);
+    // left_hand_cmd_.position = left_hand_position_cmd;
+    left_hand_cmd_.position = left_qpos_;
 
     left_hand_cmd_publisher_->publish(left_hand_cmd_);
 
     right_hand_cmd_.header.stamp = this->now();
-    std::vector<double> right_hand_position_cmd(6);
-    right_hand_position_cmd = add_poistion_cmd(right_qpos_);
-    right_hand_cmd_.position = right_hand_position_cmd;
+    // std::vector<double> right_hand_position_cmd(6);
+    // right_hand_position_cmd = add_poistion_cmd(right_qpos_);
+    // right_hand_cmd_.position = right_hand_position_cmd;
+    right_hand_cmd_.position = right_qpos_;
 
     right_hand_cmd_publisher_->publish(right_hand_cmd_);
 }
