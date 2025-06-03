@@ -52,62 +52,68 @@ Hands::Hands(const rclcpp::NodeOptions &node_options) : Node("hands_node", node_
 
 void Hands::start_tcp_server()
 {
-    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_fd < 0)
-    {
-        RCLCPP_ERROR(this->get_logger(), "Failed to create socket");
-        return;
-    }
-
-    sockaddr_in address{};
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(port_);
-
-    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
-    {
-        RCLCPP_ERROR(this->get_logger(), "Bind failed");
-        close(server_fd);
-        return;
-    }
-
-    if (listen(server_fd, 1) < 0)
-    {
-        RCLCPP_ERROR(this->get_logger(), "Listen failed");
-        close(server_fd);
-        return;
-    }
-
-    RCLCPP_INFO(this->get_logger(), "Waiting for TCP connection on port %d...", port_);
-
-    socklen_t addrlen = sizeof(address);
-    int client_fd = accept(server_fd, (struct sockaddr *)&address, &addrlen);
-    if (client_fd < 0)
-    {
-        RCLCPP_ERROR(this->get_logger(), "Accept failed");
-        close(server_fd);
-        return;
-    }
-
-    RCLCPP_INFO(this->get_logger(), "Client connected.");
-
-    char buffer[1024];
     while (running_)
     {
-        ssize_t bytes_read = read(client_fd, buffer, sizeof(buffer) - 1);
-        if (bytes_read <= 0)
+        int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+        if (server_fd < 0)
         {
-            RCLCPP_WARN(this->get_logger(), "Client disconnected or read error");
-            break;
+            RCLCPP_ERROR(this->get_logger(), "Failed to create socket");
+            return;
         }
 
-        buffer[bytes_read] = '\0';
-        std::string message(buffer);
-        parse_and_print(message);
-    }
+        sockaddr_in address{};
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = INADDR_ANY;
+        address.sin_port = htons(port_);
 
-    close(client_fd);
-    close(server_fd);
+        if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
+        {
+            RCLCPP_ERROR(this->get_logger(), "Bind failed");
+            close(server_fd);
+            return;
+        }
+
+        if (listen(server_fd, 1) < 0)
+        {
+            RCLCPP_ERROR(this->get_logger(), "Listen failed");
+            close(server_fd);
+            return;
+        }
+
+        RCLCPP_INFO(this->get_logger(), "Waiting for TCP connection on port %d...", port_);
+
+        socklen_t addrlen = sizeof(address);
+        int client_fd = accept(server_fd, (struct sockaddr *)&address, &addrlen);
+        if (client_fd < 0)
+        {
+            RCLCPP_ERROR(this->get_logger(), "Accept failed");
+            close(server_fd);
+            continue;  
+        }
+
+        RCLCPP_INFO(this->get_logger(), "Client connected.");
+
+        char buffer[1024];
+        bool client_connected = true;
+        while (running_ && client_connected)
+        {
+            ssize_t bytes_read = read(client_fd, buffer, sizeof(buffer) - 1);
+            if (bytes_read <= 0)
+            {
+                RCLCPP_WARN(this->get_logger(), "Client disconnected or read error");
+                client_connected = false;
+                break;
+            }
+
+            buffer[bytes_read] = '\0';
+            std::string message(buffer);
+            parse_and_print(message);
+        }
+
+        close(client_fd);
+        close(server_fd);
+        RCLCPP_INFO(this->get_logger(), "Connection closed, waiting for new connection...");
+    }
 }
 
 void Hands::parse_and_print(const std::string &message)
