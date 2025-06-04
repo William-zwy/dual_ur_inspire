@@ -13,6 +13,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(control_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
+find_package(moveit_ros_planning REQUIRED)
 
 
 add_executable(moveit_node src/moveit_node.cpp)

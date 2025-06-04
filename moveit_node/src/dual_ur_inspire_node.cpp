@@ -1,4 +1,6 @@
 #include "dual_ur_inspire_node.hpp"
+#include <moveit/robot_trajectory/robot_trajectory.h>
+
 
 Dual_ur_inspire::Dual_ur_inspire(const rclcpp::NodeOptions &node_options) : Node("dual_ur_inspire_node", node_options)
 {
@@ -292,6 +294,7 @@ geometry_msgs::msg::Pose Dual_ur_inspire::translate_pose_to_msg(const std::vecto
 
 void Dual_ur_inspire::left_arm_timer_callback()
 {
+    RCLCPP_INFO(this->get_logger(), "Left callback thread id: %ld", std::hash<std::thread::id>{}(std::this_thread::get_id()));
     geometry_msgs::msg::Pose left_goal_pose;
     bool triggered = false;
 
@@ -308,6 +311,9 @@ void Dual_ur_inspire::left_arm_timer_callback()
     if (triggered) {
         left_move_group_interface_->setPoseTarget(left_goal_pose);
 
+        left_move_group_interface_->setMaxVelocityScalingFactor(0.5);  // 50% 最大速度
+        left_move_group_interface_->setMaxAccelerationScalingFactor(0.5);  // 50% 最大加速度
+
         moveit::planning_interface::MoveGroupInterface::Plan plan;
         bool success = static_cast<bool>(left_move_group_interface_->plan(plan));
 
@@ -317,17 +323,35 @@ void Dual_ur_inspire::left_arm_timer_callback()
 
         if (success)
         {
-            left_move_group_interface_->execute(plan);
+            const auto& traj = plan.trajectory_.joint_trajectory;
+            if (!traj.points.empty())
+            {
+                const auto& t = traj.points.back().time_from_start;
+                double total_time = t.sec + 1e-9 * t.nanosec;
+                RCLCPP_INFO(this->get_logger(), "Left trajectory total duration: %.3f seconds", total_time);
+            }
+            else
+            {
+                RCLCPP_WARN(this->get_logger(), "Left trajectory is empty, cannot compute duration.");
+            }
+
+            // left_move_group_interface_->execute(plan);
+            std::thread exec_thread([this, plan]() {
+                this->left_move_group_interface_->execute(plan);
+                });
+            exec_thread.detach();
         }
         else
         {
-            RCLCPP_ERROR(this->get_logger(), "Left Planing failed!");
+            RCLCPP_ERROR(this->get_logger(), "Left Planning failed!");
         }
     }
 }
 
+
 void Dual_ur_inspire::right_arm_timer_callback()
 {
+    RCLCPP_INFO(this->get_logger(), "Right callback thread id: %ld", std::hash<std::thread::id>{}(std::this_thread::get_id()));
     geometry_msgs::msg::Pose right_goal_pose;
     bool triggered = false;
 
@@ -343,6 +367,9 @@ void Dual_ur_inspire::right_arm_timer_callback()
     if (triggered) {
         right_move_group_interface_->setPoseTarget(right_goal_pose);
 
+        right_move_group_interface_->setMaxVelocityScalingFactor(0.5);  // 50% 最大速度
+        right_move_group_interface_->setMaxAccelerationScalingFactor(0.5);  // 50% 最大加速度
+
         moveit::planning_interface::MoveGroupInterface::Plan plan;
         bool success = static_cast<bool>(right_move_group_interface_->plan(plan));
 
@@ -352,7 +379,23 @@ void Dual_ur_inspire::right_arm_timer_callback()
 
         if (success)
         {
-            right_move_group_interface_->execute(plan);
+            const auto& traj = plan.trajectory_.joint_trajectory;
+            if (!traj.points.empty())
+            {
+                const auto& t = traj.points.back().time_from_start;
+                double total_time = t.sec + 1e-9 * t.nanosec;
+                RCLCPP_INFO(this->get_logger(), "Right trajectory total duration: %.3f seconds", total_time);
+            }
+            else
+            {
+                RCLCPP_WARN(this->get_logger(), "Right trajectory is empty, cannot compute duration.");
+            }
+
+            // right_move_group_interface_->execute(plan);
+            std::thread exec_thread([this, plan]() {
+                this->right_move_group_interface_->execute(plan);
+                });
+            exec_thread.detach();
         }
         else
         {
@@ -364,9 +407,14 @@ void Dual_ur_inspire::right_arm_timer_callback()
 int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
+
     auto node = std::make_shared<Dual_ur_inspire>(rclcpp::NodeOptions());
     node->moveit_init();
-    rclcpp::spin(node);
+
+    rclcpp::executors::MultiThreadedExecutor executor(rclcpp::ExecutorOptions(), 4);
+    executor.add_node(node);
+    executor.spin();
+
     rclcpp::shutdown();
     return 0;
 }
