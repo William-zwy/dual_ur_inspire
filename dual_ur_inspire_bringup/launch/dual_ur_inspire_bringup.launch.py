@@ -146,6 +146,20 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
     )
 
+    left_arm_node = Node(
+        package="moveit_node",
+        executable='left_arm_node',
+        name='left_arm_node',
+        output="screen",
+    )
+
+    right_arm_node = Node(
+        package="moveit_node",
+        executable='right_arm_node',
+        name='right_arm_node',
+        output="screen",
+    )
+
     hands_node = Node(
         package="moveit_node",
         executable='hands_node',
@@ -211,6 +225,8 @@ def launch_setup(context, *args, **kwargs):
         joint_state_filter_node,
         dual_ur_inspire_node,
         hands_node,
+        # left_arm_node,
+        # right_arm_node,
 
         left_arm_controller_spawner,
         delay_right_arm_after_left_arm,

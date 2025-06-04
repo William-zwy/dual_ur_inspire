@@ -1,6 +1,4 @@
 #include "dual_ur_inspire_node.hpp"
-#include <moveit/robot_trajectory/robot_trajectory.h>
-
 
 Dual_ur_inspire::Dual_ur_inspire(const rclcpp::NodeOptions &node_options) : Node("dual_ur_inspire_node", node_options)
 {
@@ -294,7 +292,7 @@ geometry_msgs::msg::Pose Dual_ur_inspire::translate_pose_to_msg(const std::vecto
 
 void Dual_ur_inspire::left_arm_timer_callback()
 {
-    RCLCPP_INFO(this->get_logger(), "Left callback thread id: %ld", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+    // RCLCPP_INFO(this->get_logger(), "Left callback thread id: %ld", std::hash<std::thread::id>{}(std::this_thread::get_id()));
     geometry_msgs::msg::Pose left_goal_pose;
     bool triggered = false;
 
@@ -311,8 +309,8 @@ void Dual_ur_inspire::left_arm_timer_callback()
     if (triggered) {
         left_move_group_interface_->setPoseTarget(left_goal_pose);
 
-        left_move_group_interface_->setMaxVelocityScalingFactor(0.5);  // 50% 最大速度
-        left_move_group_interface_->setMaxAccelerationScalingFactor(0.5);  // 50% 最大加速度
+        left_move_group_interface_->setMaxVelocityScalingFactor(1.0);  // 100% 最大速度
+        left_move_group_interface_->setMaxAccelerationScalingFactor(1.0);  // 100% 最大加速度
 
         moveit::planning_interface::MoveGroupInterface::Plan plan;
         bool success = static_cast<bool>(left_move_group_interface_->plan(plan));
@@ -337,7 +335,7 @@ void Dual_ur_inspire::left_arm_timer_callback()
 
             // left_move_group_interface_->execute(plan);
             std::thread exec_thread([this, plan]() {
-                this->left_move_group_interface_->execute(plan);
+                this->left_move_group_interface_->asyncExecute(plan);
                 });
             exec_thread.detach();
         }
@@ -351,7 +349,7 @@ void Dual_ur_inspire::left_arm_timer_callback()
 
 void Dual_ur_inspire::right_arm_timer_callback()
 {
-    RCLCPP_INFO(this->get_logger(), "Right callback thread id: %ld", std::hash<std::thread::id>{}(std::this_thread::get_id()));
+    // RCLCPP_INFO(this->get_logger(), "Right callback thread id: %ld", std::hash<std::thread::id>{}(std::this_thread::get_id()));
     geometry_msgs::msg::Pose right_goal_pose;
     bool triggered = false;
 
@@ -367,8 +365,8 @@ void Dual_ur_inspire::right_arm_timer_callback()
     if (triggered) {
         right_move_group_interface_->setPoseTarget(right_goal_pose);
 
-        right_move_group_interface_->setMaxVelocityScalingFactor(0.5);  // 50% 最大速度
-        right_move_group_interface_->setMaxAccelerationScalingFactor(0.5);  // 50% 最大加速度
+        right_move_group_interface_->setMaxVelocityScalingFactor(1.0);  // 100% 最大速度
+        right_move_group_interface_->setMaxAccelerationScalingFactor(1.0);  // 100% 最大加速度
 
         moveit::planning_interface::MoveGroupInterface::Plan plan;
         bool success = static_cast<bool>(right_move_group_interface_->plan(plan));
@@ -393,7 +391,7 @@ void Dual_ur_inspire::right_arm_timer_callback()
 
             // right_move_group_interface_->execute(plan);
             std::thread exec_thread([this, plan]() {
-                this->right_move_group_interface_->execute(plan);
+                this->right_move_group_interface_->asyncExecute(plan);
                 });
             exec_thread.detach();
         }
