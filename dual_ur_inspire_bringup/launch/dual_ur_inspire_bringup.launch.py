@@ -215,7 +215,7 @@ def launch_setup(context, *args, **kwargs):
         left_arm_controller_spawner,
         delay_right_arm_after_left_arm,
         delay_joint_state_broadcaster_after_right_arm,
-        delay_rviz_after_joint_state_broadcaster_spawner,
+        # delay_rviz_after_joint_state_broadcaster_spawner,
     ]
 
     return nodes_to_start
