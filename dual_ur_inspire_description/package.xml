@@ -31,6 +31,7 @@
   <exec_depend>ros2_controllers_test_nodes</exec_depend>
 
   <depend>moveit_ros_planning_interface</depend>
+  <depend>moveit_ros_control_interface</depend> 
   <depend>joint_state_publisher</depend>
   <depend>joint_state_publisher_gui</depend>
   <depend>robot_state_publisher</depend>

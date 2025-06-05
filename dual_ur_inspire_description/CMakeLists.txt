@@ -17,6 +17,7 @@ find_package(joint_trajectory_controller REQUIRED)
 find_package(controller_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
+find_package(moveit_ros_control_interface REQUIRED) 
 
 
 foreach(Dependency IN ITEMS ${HW_IF_INCLUDE_DEPENDS})

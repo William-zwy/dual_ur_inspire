@@ -71,7 +71,7 @@ def launch_setup(context, *args, **kwargs):
     moveit_config = (
         MoveItConfigsBuilder("dual_ur_inspire")
         .robot_description(file_path="config/dual_ur_inspire_moveit.urdf.xacro")
-        .trajectory_execution(file_path="config/moveit_controllers.yaml")
+        .trajectory_execution(file_path="config/simple_moveit_controllers.yaml")
         .robot_description_semantic(file_path=os.path.join(moveit_config_pkg, "config", "dual_ur_inspire_moveit.srdf"))
         .planning_scene_monitor(
             publish_robot_description=False, publish_robot_description_semantic=True
@@ -223,15 +223,16 @@ def launch_setup(context, *args, **kwargs):
         run_move_group_node,
         ros2_control_node,
         joint_state_filter_node,
-        dual_ur_inspire_node,
+        # dual_ur_inspire_node,
         hands_node,
-        # left_arm_node,
-        # right_arm_node,
+        left_arm_node,
+        right_arm_node,
 
         left_arm_controller_spawner,
         delay_right_arm_after_left_arm,
         delay_joint_state_broadcaster_after_right_arm,
-        # delay_rviz_after_joint_state_broadcaster_spawner,
+        delay_rviz_after_joint_state_broadcaster_spawner,
+
     ]
 
     return nodes_to_start

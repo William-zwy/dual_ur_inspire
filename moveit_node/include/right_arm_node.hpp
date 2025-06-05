@@ -1,6 +1,9 @@
 #include <rclcpp/rclcpp.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <vector>
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <control_msgs/action/follow_joint_trajectory.hpp>
+
 
 class RightArm: public rclcpp::Node
 {
@@ -42,10 +45,9 @@ class RightArm: public rclcpp::Node
     std::vector<double> right_pose_;
 
     //moveit
-    rclcpp::TimerBase::SharedPtr left_arm_timer_;
     rclcpp::TimerBase::SharedPtr right_arm_timer_;
-    std::shared_ptr<moveit::planning_interface::MoveGroupInterface> left_move_group_interface_;
     std::shared_ptr<moveit::planning_interface::MoveGroupInterface> right_move_group_interface_;
+    rclcpp_action::Client<control_msgs::action::FollowJointTrajectory>::SharedPtr right_action_client_;
 
     std::vector<double> last_right_pose_;
     std::atomic<bool> right_new_goal_received_ = false;

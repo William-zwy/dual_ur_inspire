@@ -18,6 +18,9 @@ void LeftArm::moveit_init()
 {
     left_move_group_interface_ = std::make_shared<moveit::planning_interface::MoveGroupInterface>(
                                 shared_from_this(), "left_arm");
+
+    left_action_client_ = rclcpp_action::create_client<control_msgs::action::FollowJointTrajectory>(
+            shared_from_this(), "/ur_arm_left_ros2_controller/follow_joint_trajectory");
 }
 
 void LeftArm::start_tcp_server()
@@ -99,7 +102,7 @@ void LeftArm::parse_and_print(const std::string &message)
         parts.push_back(segment);
     }
 
-    if (parts.size() < 2)
+    if (parts.size() < 1)
     {
         RCLCPP_WARN(this->get_logger(), "Invalid message: %s", trimmed.c_str());
         return;
@@ -127,10 +130,6 @@ void LeftArm::parse_and_print(const std::string &message)
     // RCLCPP_INFO(this->get_logger(), "Left Pose: [%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f]",
     //             left_pose_[0], left_pose_[1], left_pose_[2],
     //             left_pose_[3], left_pose_[4], left_pose_[5], left_pose_[6]);
-
-    // RCLCPP_INFO(this->get_logger(), "Right Pose: [%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f]",
-    //             right_pose_[0], right_pose_[1], right_pose_[2],
-    //             right_pose_[3], right_pose_[4], right_pose_[5], right_pose_[6]);
 
 }
 
@@ -224,6 +223,11 @@ void LeftArm::left_arm_timer_callback()
 
         if (success)
         {
+            if (!left_action_client_->wait_for_action_server(std::chrono::seconds(5))) {
+                RCLCPP_ERROR(this->get_logger(), "Left arm action server not available");
+                return;
+            }
+
             const auto& traj = plan.trajectory_.joint_trajectory;
             if (!traj.points.empty())
             {
@@ -236,7 +240,23 @@ void LeftArm::left_arm_timer_callback()
                 RCLCPP_WARN(this->get_logger(), "Left trajectory is empty, cannot compute duration.");
             }
 
-            left_move_group_interface_->asyncExecute(plan);
+            auto goal = control_msgs::action::FollowJointTrajectory::Goal();
+            goal.trajectory = plan.trajectory_.joint_trajectory;
+            // rclcpp::Time exec_time = this->now() + rclcpp::Duration::from_seconds(1.0);
+            rclcpp::Time exec_time = this->now();
+            goal.trajectory.header.stamp = exec_time;
+
+            auto send_goal_options = rclcpp_action::Client<control_msgs::action::FollowJointTrajectory>::SendGoalOptions();
+            send_goal_options.goal_response_callback = [this](auto goal_handle) {
+                RCLCPP_INFO(this->get_logger(), "Left arm goal accepted");
+            };
+            send_goal_options.result_callback = [this](const auto& result) {
+                RCLCPP_INFO(this->get_logger(), "Left arm execution completed");
+            };
+
+            left_action_client_->async_send_goal(goal, send_goal_options);
+
+            // left_move_group_interface_->asyncExecute(plan);
         }
         else
         {

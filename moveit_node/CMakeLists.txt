@@ -17,8 +17,6 @@ find_package(trajectory_msgs REQUIRED)
 
 add_executable(moveit_node src/moveit_node.cpp)
 add_executable(dual_ur_inspire_node src/dual_ur_inspire_node.cpp)
-add_executable(test_ros2bridge src/test_ros2bridge.cpp)
-add_executable(tcp_server_node src/tcp_server_node.cpp)
 add_executable(joint_state_filter src/joint_state_filter.cpp)
 add_executable(hands_node src/hands_node.cpp)
 add_executable(left_arm_node src/left_arm_node.cpp)
@@ -37,17 +35,17 @@ ament_target_dependencies(
 ament_target_dependencies(dual_ur_inspire_node rclcpp 
                             sensor_msgs
                             rclcpp_action
-                            control_msgs
-                            trajectory_msgs
                             moveit_ros_planning_interface
                             )
 
 ament_target_dependencies(left_arm_node rclcpp 
                             rclcpp_action
+                            control_msgs
                             moveit_ros_planning_interface
                             )
 ament_target_dependencies(right_arm_node rclcpp 
                             rclcpp_action
+                            control_msgs
                             moveit_ros_planning_interface
                             )
 
@@ -59,13 +57,6 @@ ament_target_dependencies(joint_state_filter rclcpp
                             sensor_msgs
                           )
 
-ament_target_dependencies(test_ros2bridge rclcpp 
-                            sensor_msgs
-                            rclcpp_action
-                            control_msgs
-                            trajectory_msgs
-                            )
-ament_target_dependencies(tcp_server_node rclcpp)
 
 install(TARGETS moveit_node
   DESTINATION lib/${PROJECT_NAME})
@@ -76,10 +67,6 @@ install(TARGETS left_arm_node
 install(TARGETS right_arm_node
   DESTINATION lib/${PROJECT_NAME})
 install(TARGETS hands_node
-  DESTINATION lib/${PROJECT_NAME})
-install(TARGETS test_ros2bridge
-  DESTINATION lib/${PROJECT_NAME})
-install(TARGETS tcp_server_node
   DESTINATION lib/${PROJECT_NAME})
 install(TARGETS joint_state_filter
   DESTINATION lib/${PROJECT_NAME}) 
