@@ -151,6 +151,7 @@ def launch_setup(context, *args, **kwargs):
         executable='left_arm_node',
         name='left_arm_node',
         output="screen",
+        parameters=[{"use_sim_time": True}],
     )
 
     right_arm_node = Node(
@@ -158,6 +159,7 @@ def launch_setup(context, *args, **kwargs):
         executable='right_arm_node',
         name='right_arm_node',
         output="screen",
+        parameters=[{"use_sim_time": True}],
     )
 
     hands_node = Node(
@@ -165,6 +167,7 @@ def launch_setup(context, *args, **kwargs):
         executable='hands_node',
         name='hands_node',
         output="screen",
+        parameters=[{"use_sim_time": True}],
     )
 
     joint_state_broadcaster_spawner = Node(

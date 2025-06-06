@@ -3,6 +3,8 @@
 #include <vector>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <control_msgs/action/follow_joint_trajectory.hpp>
+#include "std_msgs/msg/float64_multi_array.hpp"
+
 
 class LeftArm: public rclcpp::Node
 {
@@ -47,6 +49,9 @@ class LeftArm: public rclcpp::Node
     rclcpp::TimerBase::SharedPtr left_arm_timer_;
     std::shared_ptr<moveit::planning_interface::MoveGroupInterface> left_move_group_interface_;
     rclcpp_action::Client<control_msgs::action::FollowJointTrajectory>::SharedPtr left_action_client_;
+
+    rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr joint_cmd_pub_;
+    std::vector<double> previous_joint_positions_;
 
     std::vector<double> last_left_pose_;
     std::atomic<bool> left_new_goal_received_ = false;

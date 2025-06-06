@@ -12,6 +12,8 @@ RightArm::RightArm(const rclcpp::NodeOptions &node_options) : Node("right_arm_no
     right_pose_.resize(7, 0.0);
     right_arm_timer_ = this->create_wall_timer(std::chrono::duration<double>(1.0 / 20.0), 
                                     std::bind(&RightArm::right_arm_timer_callback, this));
+    joint_cmd_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
+        "/ur_arm_right_ros2_controller/commands", 10);
 }
 
 void RightArm::moveit_init()
@@ -192,7 +194,6 @@ geometry_msgs::msg::Pose RightArm::translate_pose_to_msg(const std::vector<doubl
 
 void RightArm::right_arm_timer_callback()
 {
-    // RCLCPP_INFO(this->get_logger(), "Right callback thread id: %ld", std::hash<std::thread::id>{}(std::this_thread::get_id()));
     geometry_msgs::msg::Pose right_goal_pose;
     bool triggered = false;
 
@@ -220,10 +221,6 @@ void RightArm::right_arm_timer_callback()
 
         if (success)
         {
-            if (!right_action_client_->wait_for_action_server(std::chrono::seconds(5))) {
-                RCLCPP_ERROR(this->get_logger(), "Right arm action server not available");
-                return;
-            }
 
             const auto& traj = plan.trajectory_.joint_trajectory;
             if (!traj.points.empty())
@@ -231,29 +228,18 @@ void RightArm::right_arm_timer_callback()
                 const auto& t = traj.points.back().time_from_start;
                 double total_time = t.sec + 1e-9 * t.nanosec;
                 RCLCPP_INFO(this->get_logger(), "Right trajectory total duration: %.3f seconds", total_time);
+
+                const std::vector<double>& joint_positions = traj.points.back().positions;
+
+                std_msgs::msg::Float64MultiArray cmd_msg;
+                cmd_msg.data = joint_positions;
+                joint_cmd_pub_->publish(cmd_msg);
+
             }
             else
             {
                 RCLCPP_WARN(this->get_logger(), "Right trajectory is empty, cannot compute duration.");
             }
-
-            auto goal = control_msgs::action::FollowJointTrajectory::Goal();
-            goal.trajectory = plan.trajectory_.joint_trajectory;
-            // rclcpp::Time exec_time = this->now() + rclcpp::Duration::from_seconds(1.0);
-            rclcpp::Time exec_time = this->now();
-            goal.trajectory.header.stamp = exec_time;
-
-            auto send_goal_options = rclcpp_action::Client<control_msgs::action::FollowJointTrajectory>::SendGoalOptions();
-            send_goal_options.goal_response_callback = [this](auto goal_handle) {
-                RCLCPP_INFO(this->get_logger(), "Right arm goal accepted");
-            };
-            send_goal_options.result_callback = [this](const auto& result) {
-                RCLCPP_INFO(this->get_logger(), "Right arm execution completed");
-            };
-
-            right_action_client_->async_send_goal(goal, send_goal_options);
-
-            // right_move_group_interface_->asyncExecute(plan);
         }
         else
         {

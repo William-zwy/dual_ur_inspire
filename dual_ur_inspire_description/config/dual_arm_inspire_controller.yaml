@@ -6,9 +6,9 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
 
     ur_arm_left_ros2_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      type:  position_controllers/JointGroupPositionController
     ur_arm_right_ros2_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      type: position_controllers/JointGroupPositionController
 
 ur_arm_left_ros2_controller:
   ros__parameters:
