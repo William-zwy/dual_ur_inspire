@@ -105,7 +105,8 @@ def launch_setup(context, *args, **kwargs):
         executable='left_arm_node',
         output="screen",
         parameters=[{"urdf_path": urdf_config},
-                    {"use_sim_time": True}],
+                    {"use_sim_time": True},
+                    params_config],
     )
 
     right_arm_node = Node(
@@ -113,7 +114,8 @@ def launch_setup(context, *args, **kwargs):
         executable='right_arm_node',
         output="screen",
         parameters=[{"urdf_path": urdf_config},
-                    {"use_sim_time": True}],
+                    {"use_sim_time": True},
+                    params_config],
     )
 
     fingers_node = Node(
@@ -150,8 +152,8 @@ def launch_setup(context, *args, **kwargs):
         robot_state_publisher_node,
         joint_state_filter_node,
         fingers_node,
-        left_arm_node,
-        right_arm_node,
+        # left_arm_node,
+        # right_arm_node,
         control_node,
         left_arm_controller_spawner,
         right_arm_controller_spawner,

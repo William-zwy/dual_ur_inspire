@@ -40,3 +40,23 @@ ur_arm_right_ros2_controller:
     state_interfaces:
       - position
       - velocity
+
+left_arm_node:
+  ros__parameters:
+    tcp_port: 45678
+    chain_root: stand
+    chain_tip: left_ee_link
+    robot_arm_length: 0.917
+    human_arm_length: 0.6
+    z_init_: 0.916
+    Z_bias_: 1.3
+
+right_arm_node:
+  ros__parameters:
+    tcp_port: 34567
+    chain_root: stand
+    chain_tip: right_ee_link
+    robot_arm_length: 0.917
+    human_arm_length: 0.6
+    z_init_: 0.916
+    Z_bias_: 1.3

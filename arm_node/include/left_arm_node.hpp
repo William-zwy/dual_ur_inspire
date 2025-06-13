@@ -20,8 +20,12 @@ class LeftArm: public rclcpp::Node
     void parse_and_print(const std::string &message);
     std::vector<double> parse_pose(const std::string &s);
     bool is_pose_changed(const std::vector<double>& a, const std::vector<double>& b, double tol = 1e-3);
-    geometry_msgs::msg::Pose translate_pose_to_msg(const std::vector<double>& Quaternion_pose);
+    geometry_msgs::msg::Pose translate_pose_to_msg(const std::vector<double>& pose);
     void left_arm_timer_callback();
+    std::vector<double> manipulatorIK(geometry_msgs::msg::Pose target_pose);
+    geometry_msgs::msg::Pose get_target_pose(const std::vector<double>& pose);
+    void send_joint_cmd(const std::vector<double>& pose);
+    void init_params();
 
     //tcp
     int port_;
@@ -54,7 +58,11 @@ class LeftArm: public rclcpp::Node
     sensor_msgs::msg::JointState left_arm_cmd_;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr left_arm_cmd_publisher_;
 
-    std::vector<double> manipulatorIK(geometry_msgs::msg::Pose target_pose);
-    geometry_msgs::msg::Pose get_target_pose(const std::vector<double>& pose);
-    void send_joint_cmd(const std::vector<double>& pose);
+    std::string urdf_path_;
+    std::string chain_root_;
+    std::string chain_tip_;
+    double robot_arm_length_;
+    double human_arm_length_;
+    double z_init_;
+    double Z_bias_;
 };

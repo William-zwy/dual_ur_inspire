@@ -10,7 +10,8 @@
 
 LeftArm::LeftArm(const rclcpp::NodeOptions &node_options) : Node("left_arm_node", node_options)
 {
-    port_ = 45678;
+    init_params();
+
     server_thread_ = std::thread(&LeftArm::start_tcp_server, this);
 
     left_pose_.resize(7, 0.0);
@@ -40,13 +41,10 @@ LeftArm::LeftArm(const rclcpp::NodeOptions &node_options) : Node("left_arm_node"
 
     KDL::Tree tree;
 
-    this->declare_parameter<std::string>("urdf_path", "");
-    std::string urdf_path = this->get_parameter("urdf_path").as_string();
-
-    std::ifstream file(urdf_path);
+    std::ifstream file(urdf_path_);
     if (!file)
     {
-        RCLCPP_FATAL(this->get_logger(), "Failed to open URDF file at: %s", urdf_path.c_str());
+        RCLCPP_FATAL(this->get_logger(), "Failed to open URDF file at: %s", urdf_path_.c_str());
         return;
     }
 
@@ -107,6 +105,27 @@ LeftArm::LeftArm(const rclcpp::NodeOptions &node_options) : Node("left_arm_node"
 
     ik_solver_ = std::make_unique<TRAC_IK::TRAC_IK>(kdl_chain_, joint_min_, joint_max_, 0.05, 1e-5, TRAC_IK::Distance);
 
+}
+
+void LeftArm::init_params()
+{
+    this->declare_parameter<int>("tcp_port", 45678);
+    this->declare_parameter<std::string>("urdf_path", "");
+    this->declare_parameter<std::string>("chain_root", "");
+    this->declare_parameter<std::string>("chain_tip", "");
+    this->declare_parameter<float>("robot_arm_length", 0.8);
+    this->declare_parameter<float>("human_arm_length", 0.6);
+    this->declare_parameter<float>("z_init_", 1.0);
+    this->declare_parameter<float>("Z_bias_", 1.6);
+
+    port_ = this->get_parameter("tcp_port").as_int();
+    urdf_path_ = this->get_parameter("urdf_path").as_string();
+    chain_root_ = this->get_parameter("chain_root").as_string();
+    chain_tip_ = this->get_parameter("chain_tip").as_string();
+    robot_arm_length_ = this->get_parameter("robot_arm_length").as_double();
+    human_arm_length_ = this->get_parameter("human_arm_length").as_double();
+    z_init_ = this->get_parameter("z_init_").as_double();
+    Z_bias_ = this->get_parameter("Z_bias_").as_double();
 }
 
 void LeftArm::start_tcp_server()
@@ -246,18 +265,18 @@ bool LeftArm::is_pose_changed(const std::vector<double>& a, const std::vector<do
 }
 
 // 输入 [x, y, z, qx, qy, qz, qw]
-geometry_msgs::msg::Pose LeftArm::translate_pose_to_msg(const std::vector<double>& Quaternion_pose)
+geometry_msgs::msg::Pose LeftArm::translate_pose_to_msg(const std::vector<double>& pose)
 {
     geometry_msgs::msg::Pose goal_pose;
 
-    goal_pose.position.x = 0.817*(0.6+Quaternion_pose[0])/0.6;  // x
-    goal_pose.position.y = Quaternion_pose[1];  // y 
-    goal_pose.position.z = 0.916+Quaternion_pose[2]-1.2;  // z
+    goal_pose.position.x = robot_arm_length_*(human_arm_length_+pose[0])/human_arm_length_;  // x
+    goal_pose.position.y = pose[1];  // y 
+    goal_pose.position.z = z_init_+pose[2]-Z_bias_;  // z
 
-    goal_pose.orientation.x = Quaternion_pose[3];  // qx
-    goal_pose.orientation.y = Quaternion_pose[4];  // qy
-    goal_pose.orientation.z = Quaternion_pose[5];  // qz
-    goal_pose.orientation.w = Quaternion_pose[6];  // qw
+    goal_pose.orientation.x = pose[3];  // qx
+    goal_pose.orientation.y = pose[4];  // qy
+    goal_pose.orientation.z = pose[5];  // qz
+    goal_pose.orientation.w = pose[6];  // qw
 
     return goal_pose;
 }
