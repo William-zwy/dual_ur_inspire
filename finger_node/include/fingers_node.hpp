@@ -22,8 +22,10 @@ class Hands: public rclcpp::Node
     void start_tcp_server();
     void hand_cmd_timer_callback();
     std::vector<double> parse_pose(const std::string &s);
+    void init_params();
 
     int port_;
+    bool show_tcp_data_;
     bool running_ = true;
     std::thread server_thread_;
     std::vector<double> left_qpos_;

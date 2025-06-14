@@ -93,14 +93,17 @@ RightArm::RightArm(const rclcpp::NodeOptions &node_options) : Node("right_arm_no
         ++idx;
     }
 
-    idx = 0;
-    for (const auto& segment : kdl_chain_.segments) {
-        const KDL::Joint& joint = segment.getJoint();
-        if (joint.getType() == KDL::Joint::None) continue;
+    if(debugging_)
+    {
+        idx = 0;
+        for (const auto& segment : kdl_chain_.segments) {
+            const KDL::Joint& joint = segment.getJoint();
+            if (joint.getType() == KDL::Joint::None) continue;
 
-        RCLCPP_INFO(this->get_logger(), "Joint %u (%s): min = %.6f, max = %.6f",
-                    idx, joint.getName().c_str(), joint_min_(idx), joint_max_(idx));
-        ++idx;
+            RCLCPP_INFO(this->get_logger(), "Joint %u (%s): min = %.6f, max = %.6f",
+                        idx, joint.getName().c_str(), joint_min_(idx), joint_max_(idx));
+            ++idx;
+        }
     }
 
     ik_solver_ = std::make_unique<TRAC_IK::TRAC_IK>(kdl_chain_, joint_min_, joint_max_, 0.05, 1e-5, TRAC_IK::Distance);
@@ -115,8 +118,10 @@ void RightArm::init_params()
     this->declare_parameter<std::string>("chain_tip", "");
     this->declare_parameter<float>("robot_arm_length", 0.8);
     this->declare_parameter<float>("human_arm_length", 0.6);
-    this->declare_parameter<float>("z_init_", 1.0);
-    this->declare_parameter<float>("Z_bias_", 1.6);
+    this->declare_parameter<float>("z_init", 1.0);
+    this->declare_parameter<float>("Z_bias", 1.6);
+    this->declare_parameter<bool>("debugging", false);
+    this->declare_parameter<bool>("show_tcp_data", false);
 
     port_ = this->get_parameter("tcp_port").as_int();
     urdf_path_ = this->get_parameter("urdf_path").as_string();
@@ -124,8 +129,10 @@ void RightArm::init_params()
     chain_tip_ = this->get_parameter("chain_tip").as_string();
     robot_arm_length_ = this->get_parameter("robot_arm_length").as_double();
     human_arm_length_ = this->get_parameter("human_arm_length").as_double();
-    z_init_ = this->get_parameter("z_init_").as_double();
-    Z_bias_ = this->get_parameter("Z_bias_").as_double();
+    z_init_ = this->get_parameter("z_init").as_double();
+    Z_bias_ = this->get_parameter("Z_bias").as_double();
+    debugging_ = this->get_parameter("debugging").as_bool();
+    show_tcp_data_ = this->get_parameter("show_tcp_data").as_bool();
 }
 
 void RightArm::start_tcp_server()
@@ -231,9 +238,12 @@ void RightArm::parse_and_print(const std::string &message)
         return;
     }
 
-    // RCLCPP_INFO(this->get_logger(), "Right Pose: [%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f]",
-    //             right_pose_[0], right_pose_[1], right_pose_[2],
-    //             right_pose_[3], right_pose_[4], right_pose_[5], right_pose_[6]);
+    if(show_tcp_data_)
+    {
+        RCLCPP_INFO(this->get_logger(), "Right Pose: [%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f]",
+                    right_pose_[0], right_pose_[1], right_pose_[2],
+                    right_pose_[3], right_pose_[4], right_pose_[5], right_pose_[6]);
+    }
 }
 
 std::vector<double> RightArm::parse_pose(const std::string &s)
@@ -310,12 +320,14 @@ void RightArm::send_joint_cmd(const std::vector<double>& pose)
 {
     std_msgs::msg::Float64MultiArray cmd_msg;
     cmd_msg.data = pose;
-    right_arm_cmd_.position = pose;
+    // right_arm_cmd_.position = pose;
 
-    RCLCPP_INFO(this->get_logger(), "Command: [%f %f %f %f %f %f]",
-    right_arm_cmd_.position[0], right_arm_cmd_.position[1], right_arm_cmd_.position[2],
-    right_arm_cmd_.position[3], right_arm_cmd_.position[4], right_arm_cmd_.position[5]);
-
+    if(debugging_)
+    {
+        RCLCPP_INFO(this->get_logger(), "Command: [%f %f %f %f %f %f]",
+        pose[0], pose[1], pose[2],
+        pose[3], pose[4], pose[5]);
+    }
     controller_cmd_pub_->publish(cmd_msg);
     // right_arm_cmd_publisher_->publish(right_arm_cmd_);
 }
@@ -340,7 +352,9 @@ std::vector<double> RightArm::manipulatorIK(geometry_msgs::msg::Pose target_pose
     KDL::JntArray return_joints;
     double joint_angle_change;
 
-    RCLCPP_INFO(this->get_logger(), "target_pose - Position: [%f, %f, %f], Orientation: [%f, %f, %f, %f]",
+    if(debugging_)
+    {
+            RCLCPP_INFO(this->get_logger(), "target_pose - Position: [%f, %f, %f], Orientation: [%f, %f, %f, %f]",
             target_pose.position.x,  // x position
             target_pose.position.y,  // y position
             target_pose.position.z,  // z position
@@ -349,6 +363,7 @@ std::vector<double> RightArm::manipulatorIK(geometry_msgs::msg::Pose target_pose
             target_pose.orientation.z,  // z quaternion
             target_pose.orientation.w   // w quaternion
             );
+    }
 
     double it[] = {target_pose.position.x, target_pose.position.y, target_pose.position.z};
     memcpy(desired_end_effector_pose_.p.data, it, sizeof(it));
@@ -359,17 +374,21 @@ std::vector<double> RightArm::manipulatorIK(geometry_msgs::msg::Pose target_pose
     target_pose.orientation.w
     );
     joint_seed_.data << desired_angle_.data[0],desired_angle_.data[1],desired_angle_.data[2],desired_angle_.data[3],desired_angle_.data[4],desired_angle_.data[5];
-    RCLCPP_INFO(this->get_logger(), "Seed: [%f %f %f %f %f %f]",
-    joint_seed_(0), joint_seed_(1), joint_seed_(2),
-    joint_seed_(3), joint_seed_(4), joint_seed_(5));
+    
+    if(debugging_)
+    {
+        RCLCPP_INFO(this->get_logger(), "Seed: [%f %f %f %f %f %f]",
+        joint_seed_(0), joint_seed_(1), joint_seed_(2),
+        joint_seed_(3), joint_seed_(4), joint_seed_(5));
 
-    for (int i = 0; i < 3; ++i) {
-        RCLCPP_INFO(this->get_logger(), 
-            "Rotation matrix row %d: [%.6f, %.6f, %.6f]",
-            i,
-            desired_end_effector_pose_.M(i, 0),
-            desired_end_effector_pose_.M(i, 1),
-            desired_end_effector_pose_.M(i, 2));
+        for (int i = 0; i < 3; ++i) {
+            RCLCPP_INFO(this->get_logger(), 
+                "Rotation matrix row %d: [%.6f, %.6f, %.6f]",
+                i,
+                desired_end_effector_pose_.M(i, 0),
+                desired_end_effector_pose_.M(i, 1),
+                desired_end_effector_pose_.M(i, 2));
+        }
     }
 
     int rc = ik_solver_->CartToJnt(joint_seed_, desired_end_effector_pose_, return_joints);

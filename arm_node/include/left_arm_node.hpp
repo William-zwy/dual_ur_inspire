@@ -33,8 +33,11 @@ class LeftArm: public rclcpp::Node
     std::thread server_thread_;
     std::vector<double> left_pose_;
 
+    sensor_msgs::msg::JointState left_arm_cmd_;
     rclcpp::TimerBase::SharedPtr left_arm_timer_;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr controller_cmd_pub_;
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr left_arm_cmd_publisher_;
+
 
     std::vector<double> last_left_pose_;
     std::atomic<bool> left_new_goal_received_ = false;
@@ -55,8 +58,6 @@ class LeftArm: public rclcpp::Node
     std::vector<double> ee_init_point_;
     std::vector<double> hand_init_point_;
     float trans_ratio_;
-    sensor_msgs::msg::JointState left_arm_cmd_;
-    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr left_arm_cmd_publisher_;
 
     std::string urdf_path_;
     std::string chain_root_;
@@ -65,4 +66,6 @@ class LeftArm: public rclcpp::Node
     double human_arm_length_;
     double z_init_;
     double Z_bias_;
+    bool debugging_;
+    bool show_tcp_data_;
 };

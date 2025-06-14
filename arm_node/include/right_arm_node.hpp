@@ -33,7 +33,9 @@ class RightArm: public rclcpp::Node
     std::thread server_thread_;
     std::vector<double> right_pose_;
 
+    sensor_msgs::msg::JointState right_arm_cmd_;
     rclcpp::TimerBase::SharedPtr right_arm_timer_;
+    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr right_arm_cmd_publisher_;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr controller_cmd_pub_;
 
     std::vector<double> last_right_pose_;
@@ -55,8 +57,6 @@ class RightArm: public rclcpp::Node
     std::vector<double> ee_init_point_;
     std::vector<double> hand_init_point_;
     float trans_ratio_;
-    sensor_msgs::msg::JointState right_arm_cmd_;
-    rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr right_arm_cmd_publisher_;
 
     std::string urdf_path_;
     std::string chain_root_;
@@ -65,4 +65,6 @@ class RightArm: public rclcpp::Node
     double human_arm_length_;
     double z_init_;
     double Z_bias_;
+    bool debugging_;
+    bool show_tcp_data_;
 };

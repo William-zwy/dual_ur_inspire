@@ -5,14 +5,8 @@ from launch.substitutions import LaunchConfiguration, Command, PathJoinSubstitut
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from ament_index_python.packages import get_package_share_directory
+import yaml
 
-from launch_ros.substitutions import FindPackageShare
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.conditions import IfCondition, UnlessCondition
-from launch.event_handlers import OnProcessExit
-from launch.actions import RegisterEventHandler
-
-from moveit_configs_utils import MoveItConfigsBuilder
 
 def generate_launch_description():
 
@@ -71,19 +65,23 @@ def launch_setup(context, *args, **kwargs):
         )
     robot_description = {"robot_description": robot_description_content}
 
+    with open(urdf_config, 'r') as f:
+        robot_desc = f.read()
+
+    with open(params_config, 'r') as f:
+        yaml_data = yaml.safe_load(f)
+
+    use_rviz = yaml_data.get('/**', {}).get('ros__parameters', {}).get('use_rviz', True)
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
         name="rviz2",
         output="log",
         arguments=["-d", rviz_config],
-        parameters=[
-            {"use_sim_time": True},
+        parameters=[params_config,
         ],
     )
-
-    with open(urdf_config, 'r') as f:
-        robot_desc = f.read()
 
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
@@ -91,7 +89,7 @@ def launch_setup(context, *args, **kwargs):
         output='screen',
         parameters=[
             robot_description,
-            {'use_sim_time': False}]
+            params_config]
     )
 
     joint_state_filter_node = Node(
@@ -105,7 +103,6 @@ def launch_setup(context, *args, **kwargs):
         executable='left_arm_node',
         output="screen",
         parameters=[{"urdf_path": urdf_config},
-                    {"use_sim_time": True},
                     params_config],
     )
 
@@ -114,7 +111,6 @@ def launch_setup(context, *args, **kwargs):
         executable='right_arm_node',
         output="screen",
         parameters=[{"urdf_path": urdf_config},
-                    {"use_sim_time": True},
                     params_config],
     )
 
@@ -123,13 +119,13 @@ def launch_setup(context, *args, **kwargs):
         executable='finger_node',
         name='fingers_node',
         output="screen",
-        parameters=[{"use_sim_time": True}],
+        parameters=[params_config],
     )
 
     control_node = Node(
     package="controller_manager",
     executable="ros2_control_node",
-    parameters=[robot_description, params_config,{"use_sim_time": True}],
+    parameters=[robot_description, params_config],
     remappings=[
         ("robot_description", "/robot_description"),
         ],
@@ -148,15 +144,16 @@ def launch_setup(context, *args, **kwargs):
     )
 
     nodes_to_start = [
-        rviz_node,
         robot_state_publisher_node,
         joint_state_filter_node,
         fingers_node,
-        # left_arm_node,
-        # right_arm_node,
+        left_arm_node,
+        right_arm_node,
         control_node,
         left_arm_controller_spawner,
         right_arm_controller_spawner,
     ]
+    if use_rviz:
+        nodes_to_start.insert(0, rviz_node)
 
     return nodes_to_start

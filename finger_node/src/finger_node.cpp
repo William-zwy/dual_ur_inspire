@@ -2,11 +2,10 @@
 
 Hands::Hands(const rclcpp::NodeOptions &node_options) : Node("hands_node", node_options)
 {
-    //tcp
-    port_ = 23456;
+    init_params();
+
     server_thread_ = std::thread(&Hands::start_tcp_server, this);
 
-    //hand command
     left_hand_cmd_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("left_hand_cmd", 10);
     right_hand_cmd_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("right_hand_cmd", 10);
     send_hand_cmd_timer_ = this->create_wall_timer(std::chrono::duration<double>(1.0 / 20.0), 
@@ -48,6 +47,15 @@ Hands::Hands(const rclcpp::NodeOptions &node_options) : Node("hands_node", node_
         };
     size_t num_right_hand_joints = right_hand_cmd_.name.size();
     right_hand_cmd_.position.resize(num_right_hand_joints, 0.0);
+}
+
+void Hands::init_params()
+{
+    this->declare_parameter<int>("tcp_port", 23456);
+    this->declare_parameter<bool>("show_tcp_data", false);
+
+    port_ = this->get_parameter("tcp_port").as_int();
+    show_tcp_data_ = this->get_parameter("show_tcp_data").as_bool();
 }
 
 void Hands::start_tcp_server()
@@ -154,8 +162,11 @@ void Hands::parse_and_print(const std::string &message)
             right_qpos_stream << ", ";
     }
 
-    // RCLCPP_INFO(this->get_logger(), "Left Qpos: [%s]", left_qpos_stream.str().c_str());
-    // RCLCPP_INFO(this->get_logger(), "Right Qpos: [%s]", right_qpos_stream.str().c_str());
+    if(show_tcp_data_)
+    {
+        RCLCPP_INFO(this->get_logger(), "Left Qpos: [%s]", left_qpos_stream.str().c_str());
+        RCLCPP_INFO(this->get_logger(), "Right Qpos: [%s]", right_qpos_stream.str().c_str());
+    }
 }
 
 std::vector<double> Hands::parse_pose(const std::string &s)
