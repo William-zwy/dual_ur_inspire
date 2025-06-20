@@ -165,7 +165,7 @@ def launch_setup(context, *args, **kwargs):
         left_arm_node,
         right_arm_node,
         ur_control_node,
-        # left_arm_controller_spawner,
+        left_arm_controller_spawner,
         right_arm_controller_spawner,
         joint_state_broadcaster_spawner
     ]
