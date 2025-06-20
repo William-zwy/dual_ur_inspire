@@ -1,4 +1,6 @@
 #include <rclcpp/rclcpp.hpp>
+#include "trajectory_msgs/msg/joint_trajectory.hpp"
+#include "trajectory_msgs/msg/joint_trajectory_point.hpp"
 
 #include "geometry_msgs/msg/pose.hpp"
 #include "std_msgs/msg/float64_multi_array.hpp"
@@ -34,9 +36,11 @@ class RightArm: public rclcpp::Node
     std::vector<double> right_pose_;
 
     sensor_msgs::msg::JointState right_arm_cmd_;
+    trajectory_msgs::msg::JointTrajectory traj_msg_;
     rclcpp::TimerBase::SharedPtr right_arm_timer_;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr right_arm_cmd_publisher_;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr controller_cmd_pub_;
+    rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr traj_pub_;
 
     std::vector<double> last_right_pose_;
     std::atomic<bool> right_new_goal_received_ = false;

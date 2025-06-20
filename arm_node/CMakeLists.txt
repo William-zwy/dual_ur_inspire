@@ -12,6 +12,7 @@ find_package(trac_ik_lib REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(trajectory_msgs REQUIRED)
 
 add_executable(right_arm_node src/right_arm_node.cpp)
 add_executable(left_arm_node src/left_arm_node.cpp)
@@ -22,6 +23,7 @@ ament_target_dependencies(right_arm_node
                           geometry_msgs
                           std_msgs
                           sensor_msgs
+                          trajectory_msgs
                           )
 
 ament_target_dependencies(left_arm_node 
@@ -30,6 +32,7 @@ ament_target_dependencies(left_arm_node
                           geometry_msgs
                           std_msgs
                           sensor_msgs
+                          trajectory_msgs
                           )
 
 install(TARGETS right_arm_node

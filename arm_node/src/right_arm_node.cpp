@@ -20,6 +20,8 @@ RightArm::RightArm(const rclcpp::NodeOptions &node_options) : Node("right_arm_no
     right_arm_cmd_publisher_ = this->create_publisher<sensor_msgs::msg::JointState>("right_arm_cmd_TracIK", 10);
     controller_cmd_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
         "/ur_arm_right_ros2_controller/commands", 10);
+    traj_pub_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(
+      "/ur_arm_right_ros2_controller/joint_trajectory", 10);
 
     ee_init_point_ = {0.4,0.5,1.8,0.707,0,0,0.707};
     hand_init_point_ = {0.3,0.5,1.1,0.707,0,0,0.707};
@@ -36,6 +38,9 @@ RightArm::RightArm(const rclcpp::NodeOptions &node_options) : Node("right_arm_no
         };
     size_t num_right_arm_joints = right_arm_cmd_.name.size();
     right_arm_cmd_.position.resize(num_right_arm_joints, 0.0);
+
+    traj_msg_.joint_names = right_arm_cmd_.name;
+    traj_msg_.points.clear();
 
     joint_seed_ = KDL::JntArray(6);
 
@@ -310,6 +315,7 @@ void RightArm::right_arm_timer_callback()
     }
 
     if (triggered) {
+        traj_msg_.points.clear();
         std::vector<double> ikJointValues = manipulatorIK(right_goal_pose);
         send_joint_cmd(ikJointValues);
     }
@@ -322,6 +328,11 @@ void RightArm::send_joint_cmd(const std::vector<double>& pose)
     cmd_msg.data = pose;
     // right_arm_cmd_.position = pose;
 
+    trajectory_msgs::msg::JointTrajectoryPoint point;
+    point.positions = pose;
+    point.time_from_start = rclcpp::Duration::from_seconds(2.0);
+    traj_msg_.points.push_back(point);
+
     if(debugging_)
     {
         RCLCPP_INFO(this->get_logger(), "Command: [%f %f %f %f %f %f]",
@@ -330,6 +341,7 @@ void RightArm::send_joint_cmd(const std::vector<double>& pose)
     }
     controller_cmd_pub_->publish(cmd_msg);
     // right_arm_cmd_publisher_->publish(right_arm_cmd_);
+    traj_pub_->publish(traj_msg_);
 }
 
 geometry_msgs::msg::Pose RightArm::get_target_pose(const std::vector<double>& pose)

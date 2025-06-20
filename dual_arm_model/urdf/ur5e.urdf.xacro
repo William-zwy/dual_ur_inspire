@@ -150,7 +150,7 @@
       <parent link="${prefix}shoulder_link" />
       <child link = "${prefix}upper_arm_link" />
       <xacro:if value="${reverse_arm}">
-        <origin xyz="0.0 ${shoulder_offset} 0.0" rpy="${pi} ${pi / 2.0 + pi} ${pi}" />
+        <origin xyz="0.0 ${shoulder_offset} 0.0" rpy="${pi} ${pi / 2.0} ${pi}" />
       </xacro:if>
       <xacro:unless value="${reverse_arm}">
         <origin xyz="0.0 ${shoulder_offset} 0.0" rpy="0.0 ${pi / 2.0} 0.0" />
@@ -233,7 +233,7 @@
       <parent link="${prefix}forearm_link" />
       <child link = "${prefix}wrist_1_link" />
       <xacro:if value="${reverse_arm}">
-        <origin xyz="0.0 0.0 ${forearm_length}" rpy="${pi} ${pi / 2.0 + pi} ${pi}" />
+        <origin xyz="0.0 0.0 ${forearm_length}" rpy="${pi} ${pi / 2.0} ${pi}" />
       </xacro:if>
       <xacro:unless value="${reverse_arm}">
         <origin xyz="0.0 0.0 ${forearm_length}" rpy="0.0 ${pi / 2.0} 0.0" />
@@ -277,10 +277,10 @@
       <parent link="${prefix}wrist_1_link" />
       <child link = "${prefix}wrist_2_link" />
       <xacro:if value="${reverse_arm}">
-        <origin xyz="0.0 ${wrist_1_length} 0.0" rpy="0.0 0.0 ${-PI/2}" />
+        <origin xyz="0.0 ${wrist_1_length} 0.0" rpy="0.0 0.0 0.0" />
       </xacro:if>
       <xacro:unless value="${reverse_arm}">
-        <origin xyz="0.0 ${wrist_1_length} 0.0" rpy="0.0 0.0 ${PI/2}" />
+        <origin xyz="0.0 ${wrist_1_length} 0.0" rpy="0.0 0.0 0.0" />
       </xacro:unless>
       <axis xyz="0 0 1" />
       <xacro:unless value="${joint_limited}">
@@ -321,10 +321,10 @@
       <parent link="${prefix}wrist_2_link" />
       <child link = "${prefix}wrist_3_link" />
       <xacro:if value="${reverse_arm}">
-        <origin xyz="0.0 0.0 ${wrist_2_length}" rpy="0.0 ${-pi/2} 0.0" />
+        <origin xyz="0.0 0.0 ${wrist_2_length}" rpy="0.0 0.0 0.0" />
       </xacro:if>
       <xacro:unless value="${reverse_arm}">
-        <origin xyz="0.0 0.0 ${wrist_2_length}" rpy="0.0 ${-pi/2} 0.0" />
+        <origin xyz="0.0 0.0 ${wrist_2_length}" rpy="0.0 0.0 0.0" />
       </xacro:unless>
       <axis xyz="0 1 0" />
       <xacro:unless value="${joint_limited}">

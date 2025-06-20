@@ -23,7 +23,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "params_config",
-            default_value=os.path.join(bringup_pkg, "config", "params.yaml"), 
+            default_value=os.path.join(bringup_pkg, "config", "real_params.yaml"), 
             description="parameter configuration file",
         )
     )
@@ -31,7 +31,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "urdf_config",
-            default_value=os.path.join(bringup_pkg, "urdf", "real_bot_limited.urdf"), 
+            default_value=os.path.join(bringup_pkg, "urdf", "real_bot_arm.urdf"), 
             description="urdf configuration file",
         )
     )
@@ -39,7 +39,7 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "xacro_config",
-            default_value=os.path.join(bringup_pkg, "urdf", "real_bot.xacro"), 
+            default_value=os.path.join(bringup_pkg, "urdf", "real_bot_arm.xacro"), 
             description="urdf configuration file",
         )
     )
@@ -132,6 +132,16 @@ def launch_setup(context, *args, **kwargs):
         output="both",
     )
 
+    ur_control_node = Node(
+    package="ur_robot_driver",
+    executable="ur_ros2_control_node",
+    parameters=[robot_description, params_config],
+    remappings=[
+        ("robot_description", "/robot_description"),
+        ],
+        output="both",
+    )
+
     left_arm_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -142,6 +152,11 @@ def launch_setup(context, *args, **kwargs):
         executable="spawner",
         arguments=["ur_arm_right_ros2_controller", "-c", "/controller_manager"],
     )
+    joint_state_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_state_broadcaster", "-c", "/controller_manager"],
+    )
 
     nodes_to_start = [
         robot_state_publisher_node,
@@ -149,9 +164,10 @@ def launch_setup(context, *args, **kwargs):
         fingers_node,
         left_arm_node,
         right_arm_node,
-        control_node,
-        left_arm_controller_spawner,
+        ur_control_node,
+        # left_arm_controller_spawner,
         right_arm_controller_spawner,
+        joint_state_broadcaster_spawner
     ]
     if use_rviz:
         nodes_to_start.insert(0, rviz_node)

@@ -73,4 +73,4 @@ fingers_node:
 /**:
   ros__parameters:
     use_sim_time: true
-    use_rviz: false
+    use_rviz: true
