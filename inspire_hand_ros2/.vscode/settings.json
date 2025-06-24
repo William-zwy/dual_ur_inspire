@@ -1,0 +1,4 @@
+{
+    "ros.distro": "humble",
+    "cmake.sourceDirectory": "/home/terra/inspire_hand_ros2/inspire_hand_interfaces"
+}
