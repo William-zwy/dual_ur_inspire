@@ -55,11 +55,20 @@
 
 
 <!-- (1) UR5 -->
-  <xacro:include filename="$(find dual_arm_model)/urdf/ur5e.urdf.xacro" />
+  <xacro:include filename="$(find dual_arm_model)/urdf/ur.xacro" />
   <xacro:include filename="$(find dual_arm_model)/urdf/ur.ros2_control.xacro" />
 
   <!-- left arm -->
-  <xacro:ur5e_robot prefix="left_" joint_limited="true" reverse_arm="false"/>
+  <xacro:ur_robot 
+                      tf_prefix="left_"
+                      joint_limits_parameters_file="$(find dual_ur_inspire_bringup)/config/ur5/joint_limits.yaml"
+                      kinematics_parameters_file="$(find dual_ur_inspire_bringup)/config/ur5/default_kinematics.yaml"
+                      physical_parameters_file="$(find dual_ur_inspire_bringup)/config/ur5/physical_parameters.yaml"
+                      visual_parameters_file="$(find dual_ur_inspire_bringup)/config/ur5/visual_parameters.yaml"
+                      safety_limits="false"
+                      safety_pos_margin="0.15"
+                      safety_k_position="20"
+                      />
   <xacro:ur_arm_ros2_control
                       prefix="left_"
                       robot_ip="192.168.1.40"
@@ -68,10 +77,24 @@
                       script_filename="$(find ur_client_library)/resources/external_control.urscript"
                       output_recipe_filename="$(find dual_ur_inspire_bringup)/resources/rtde_output_recipe.txt"
                       input_recipe_filename="$(find dual_ur_inspire_bringup)/resources/rtde_input_recipe.txt"
-                      hash_kinematics="" />
+                      hash_kinematics="" 
+                      reverse_port="50001"
+                      script_sender_port="50002"
+                      script_command_port="50004"
+                      trajectory_port="50003"
+                      />
 
   <!-- right arm -->
-  <xacro:ur5e_robot prefix="right_" joint_limited="true" reverse_arm="true"/>
+  <xacro:ur_robot 
+                    tf_prefix="right_"
+                    joint_limits_parameters_file="$(find dual_ur_inspire_bringup)/config/ur5/joint_limits.yaml"
+                    kinematics_parameters_file="$(find dual_ur_inspire_bringup)/config/ur5/default_kinematics.yaml"
+                    physical_parameters_file="$(find dual_ur_inspire_bringup)/config/ur5/physical_parameters.yaml"
+                    visual_parameters_file="$(find dual_ur_inspire_bringup)/config/ur5/visual_parameters.yaml"
+                    safety_limits="false"
+                    safety_pos_margin="0.15"
+                    safety_k_position="20"
+                    />
   <xacro:ur_arm_ros2_control
                       prefix="right_"
                       robot_ip="192.168.1.41"
@@ -80,10 +103,14 @@
                       script_filename="$(find ur_client_library)/resources/external_control.urscript"
                       output_recipe_filename="$(find dual_ur_inspire_bringup)/resources/rtde_output_recipe.txt"
                       input_recipe_filename="$(find dual_ur_inspire_bringup)/resources/rtde_input_recipe.txt"
-                      hash_kinematics="" />
+                      hash_kinematics="" 
+                      reverse_port="50011"
+                      script_sender_port="50012"
+                      script_command_port="50014"
+                      trajectory_port="50013"
+                      />
 
-  <joint
-    name="left_arm_joint" type="fixed">
+  <joint name="left_arm_joint" type="fixed">
     <origin xyz="0 0.25 1.05" rpy="${-PI/2} 0 0" />
     <parent
       link="stand" />
@@ -94,7 +121,7 @@
   </joint>
 
   <joint name="right_arm_joint" type="fixed">
-    <origin xyz="0 -0.25 1.05" rpy="${PI/2} 0 0" />
+    <origin xyz="0 -0.25 1.05" rpy="${PI/2} ${PI} 0" />
     <parent
       link="stand" />
     <child
@@ -102,5 +129,35 @@
     <axis
       xyz="0 0 0" />
   </joint>
+
+    <joint name="left_ee_fixed_joint" type="fixed">
+    <parent link="left_wrist_3_link" />
+    <child link = "left_ee_link" />
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 ${-pi/2.0} ${pi/2.0}" />
+  </joint>
+
+  <link name="left_ee_link">
+    <collision>
+      <geometry>
+        <box size="0.01 0.01 0.01"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="-0.01 0 0"/>
+    </collision>
+  </link>
+
+  <joint name="right_ee_fixed_joint" type="fixed">
+    <parent link="right_wrist_3_link" />
+    <child link = "right_ee_link" />
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 ${-pi/2.0} ${pi/2.0}" />
+  </joint>
+
+  <link name="right_ee_link">
+    <collision>
+      <geometry>
+        <box size="0.01 0.01 0.01"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="-0.01 0 0"/>
+    </collision>
+  </link>
 
 </robot>
