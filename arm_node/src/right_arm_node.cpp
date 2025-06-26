@@ -8,6 +8,8 @@
 #include <kdl_parser/kdl_parser.hpp>
 #include <fstream>
 
+#include <cmath>
+
 RightArm::RightArm(const rclcpp::NodeOptions &node_options) : Node("right_arm_node", node_options)
 {
     init_params();
@@ -22,6 +24,11 @@ RightArm::RightArm(const rclcpp::NodeOptions &node_options) : Node("right_arm_no
         "/ur_arm_right_ros2_controller/commands", 10);
     traj_pub_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(
       "/ur_arm_right_ros2_controller/joint_trajectory", 10);
+    wrist_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
+            "/right/wrist_pose",
+            rclcpp::SensorDataQoS(),
+            std::bind(&RightArm::wrist_pose_Callback, this, std::placeholders::_1)
+        );
 
     ee_init_point_ = {0.4,0.5,1.8,0.707,0,0,0.707};
     hand_init_point_ = {0.3,0.5,1.1,0.707,0,0,0.707};
@@ -138,6 +145,29 @@ void RightArm::init_params()
     Z_bias_ = this->get_parameter("Z_bias").as_double();
     debugging_ = this->get_parameter("debugging").as_bool();
     show_tcp_data_ = this->get_parameter("show_tcp_data").as_bool();
+}
+
+void RightArm::wrist_pose_Callback(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
+{
+    // RCLCPP_INFO(this->get_logger(), "Received right wrist pose:");
+    // RCLCPP_INFO(this->get_logger(), "  Position: x=%.3f, y=%.3f, z=%.3f",
+    //     msg->pose.position.x,
+    //     msg->pose.position.y,
+    //     msg->pose.position.z
+    // );
+    // RCLCPP_INFO(this->get_logger(), "  Orientation: x=%.3f, y=%.3f, z=%.3f, w=%.3f",
+    //     msg->pose.orientation.x,
+    //     msg->pose.orientation.y,
+    //     msg->pose.orientation.z,
+    //     msg->pose.orientation.w
+    // );
+
+    if (is_pose_msg_changed(msg, last_right_pose_msg_)) {
+            right_pose_msg_ = msg;
+            last_right_pose_msg_ = msg;
+            right_new_goal_received_ = true;
+        }
+
 }
 
 void RightArm::start_tcp_server()
@@ -279,6 +309,39 @@ bool RightArm::is_pose_changed(const std::vector<double>& a, const std::vector<d
     return false;
 }
 
+bool RightArm::is_pose_msg_changed(const geometry_msgs::msg::PoseStamped::SharedPtr& a,const geometry_msgs::msg::PoseStamped::SharedPtr& b,
+                                                                            double position_tol,double orientation_tol) 
+{
+    if (!a || !b) return true;
+    if (std::abs(a->pose.position.x - b->pose.position.x) > position_tol ||
+        std::abs(a->pose.position.y - b->pose.position.y) > position_tol ||
+        std::abs(a->pose.position.z - b->pose.position.z) > position_tol) {
+        return true;
+    }
+
+    if (std::abs(a->pose.orientation.x - b->pose.orientation.x) > orientation_tol ||
+        std::abs(a->pose.orientation.y - b->pose.orientation.y) > orientation_tol ||
+        std::abs(a->pose.orientation.z - b->pose.orientation.z) > orientation_tol ||
+        std::abs(a->pose.orientation.w - b->pose.orientation.w) > orientation_tol) {
+        return true;
+    }
+
+    return false;
+}
+
+geometry_msgs::msg::Pose RightArm::translate_pose(const geometry_msgs::msg::PoseStamped::SharedPtr& pose)
+{
+    geometry_msgs::msg::Pose goal_pose;
+
+    goal_pose.position.x = robot_arm_length_*(human_arm_length_+pose->pose.position.x)/human_arm_length_;  // x
+    goal_pose.position.y = pose->pose.position.y;  // y 
+    goal_pose.position.z = z_init_+pose->pose.position.z-Z_bias_;  // z
+
+    goal_pose.orientation = pose->pose.orientation;
+
+    return goal_pose;
+}
+
 // 输入 [x, y, z, qx, qy, qz, qw]
 geometry_msgs::msg::Pose RightArm::translate_pose_to_msg(const std::vector<double>& pose)
 {
@@ -304,15 +367,16 @@ void RightArm::right_arm_timer_callback()
     geometry_msgs::msg::Pose right_goal_pose;
     bool triggered = false;
 
-    {
-        std::lock_guard<std::mutex> lock(pose_mutex_);
+    // {
+    //     std::lock_guard<std::mutex> lock(pose_mutex_);
         if (right_new_goal_received_) {
             right_new_goal_received_ = false;
-            right_goal_pose = translate_pose_to_msg(right_pose_);
+            // right_goal_pose = translate_pose_to_msg(right_pose_);
             // right_goal_pose = get_target_pose(right_pose_);
+            right_goal_pose = translate_pose(right_pose_msg_);
             triggered = true;
         }
-    }
+    // }
 
     if (triggered) {
         traj_msg_.points.clear();
@@ -326,7 +390,7 @@ void RightArm::send_joint_cmd(const std::vector<double>& pose)
 {
     std_msgs::msg::Float64MultiArray cmd_msg;
     cmd_msg.data = pose;
-    // right_arm_cmd_.position = pose;
+    right_arm_cmd_.position = pose;
 
     trajectory_msgs::msg::JointTrajectoryPoint point;
     point.positions = pose;
@@ -340,7 +404,7 @@ void RightArm::send_joint_cmd(const std::vector<double>& pose)
         pose[3], pose[4], pose[5]);
     }
     controller_cmd_pub_->publish(cmd_msg);
-    // right_arm_cmd_publisher_->publish(right_arm_cmd_);
+    right_arm_cmd_publisher_->publish(right_arm_cmd_);
     traj_pub_->publish(traj_msg_);
 }
 

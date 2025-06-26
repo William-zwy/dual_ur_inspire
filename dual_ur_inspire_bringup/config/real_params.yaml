@@ -83,7 +83,7 @@ left_arm_node:
 
 right_arm_node:
   ros__parameters:
-    debugging: true
+    debugging: false
     show_tcp_data: false
     tcp_port: 34567
     chain_root: stand
@@ -101,4 +101,5 @@ fingers_node:
 /**:
   ros__parameters:
     use_sim_time: false
-    use_rviz: true
+    use_rviz: false
+    use_mock_sim: false

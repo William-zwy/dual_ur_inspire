@@ -22,6 +22,11 @@ LeftArm::LeftArm(const rclcpp::NodeOptions &node_options) : Node("left_arm_node"
         "/ur_arm_left_ros2_controller/commands", 10);
     traj_pub_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(
       "/ur_arm_left_ros2_controller/joint_trajectory", 10);
+    wrist_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
+            "/left/wrist_pose",
+            rclcpp::SensorDataQoS(),
+            std::bind(&LeftArm::wrist_pose_Callback, this, std::placeholders::_1)
+        );
 
     ee_init_point_ = {0.4,0.5,1.8,0.707,0,0,0.707};
     hand_init_point_ = {0.3,0.5,1.1,0.707,0,0,0.707};
@@ -138,6 +143,27 @@ void LeftArm::init_params()
     Z_bias_ = this->get_parameter("Z_bias").as_double();
     debugging_ = this->get_parameter("debugging").as_bool();
     show_tcp_data_ = this->get_parameter("show_tcp_data").as_bool();
+}
+
+void LeftArm::wrist_pose_Callback(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
+{
+    // RCLCPP_INFO(this->get_logger(), "Received left wrist pose:");
+    // RCLCPP_INFO(this->get_logger(), "  Position: x=%.3f, y=%.3f, z=%.3f",
+    //     msg->pose.position.x,
+    //     msg->pose.position.y,
+    //     msg->pose.position.z
+    // );
+    // RCLCPP_INFO(this->get_logger(), "  Orientation: x=%.3f, y=%.3f, z=%.3f, w=%.3f",
+    //     msg->pose.orientation.x,
+    //     msg->pose.orientation.y,
+    //     msg->pose.orientation.z,
+    //     msg->pose.orientation.w
+    // );
+    if (is_pose_msg_changed(msg, last_left_pose_msg_)) {
+        left_pose_msg_ = msg;
+        last_left_pose_msg_ = msg;
+        left_new_goal_received_ = true;
+    }
 }
 
 void LeftArm::start_tcp_server()
@@ -279,6 +305,39 @@ bool LeftArm::is_pose_changed(const std::vector<double>& a, const std::vector<do
     return false;
 }
 
+bool LeftArm::is_pose_msg_changed(const geometry_msgs::msg::PoseStamped::SharedPtr& a,const geometry_msgs::msg::PoseStamped::SharedPtr& b,
+                                                                            double position_tol,double orientation_tol) 
+{
+    if (!a || !b) return true;
+    if (std::abs(a->pose.position.x - b->pose.position.x) > position_tol ||
+        std::abs(a->pose.position.y - b->pose.position.y) > position_tol ||
+        std::abs(a->pose.position.z - b->pose.position.z) > position_tol) {
+        return true;
+    }
+
+    if (std::abs(a->pose.orientation.x - b->pose.orientation.x) > orientation_tol ||
+        std::abs(a->pose.orientation.y - b->pose.orientation.y) > orientation_tol ||
+        std::abs(a->pose.orientation.z - b->pose.orientation.z) > orientation_tol ||
+        std::abs(a->pose.orientation.w - b->pose.orientation.w) > orientation_tol) {
+        return true;
+    }
+
+    return false;
+}
+
+geometry_msgs::msg::Pose LeftArm::translate_pose(const geometry_msgs::msg::PoseStamped::SharedPtr& pose)
+{
+    geometry_msgs::msg::Pose goal_pose;
+
+    goal_pose.position.x = robot_arm_length_*(human_arm_length_+pose->pose.position.x)/human_arm_length_;  // x
+    goal_pose.position.y = pose->pose.position.y;  // y 
+    goal_pose.position.z = z_init_+pose->pose.position.z-Z_bias_;  // z
+
+    goal_pose.orientation = pose->pose.orientation;
+
+    return goal_pose;
+}
+
 // 输入 [x, y, z, qx, qy, qz, qw]
 geometry_msgs::msg::Pose LeftArm::translate_pose_to_msg(const std::vector<double>& pose)
 {
@@ -301,15 +360,16 @@ void LeftArm::left_arm_timer_callback()
     geometry_msgs::msg::Pose left_goal_pose;
     bool triggered = false;
 
-    {
-        std::lock_guard<std::mutex> lock(pose_mutex_);
+    // {
+    //     std::lock_guard<std::mutex> lock(pose_mutex_);
         if (left_new_goal_received_) {
             left_new_goal_received_ = false;
-            left_goal_pose = translate_pose_to_msg(left_pose_);
+            // left_goal_pose = translate_pose_to_msg(left_pose_);
             // left_goal_pose = get_target_pose(left_pose_);
+            left_goal_pose = translate_pose(left_pose_msg_);
             triggered = true;
         }
-    }
+    // }
 
     if (triggered) {
         traj_msg_.points.clear();
@@ -323,7 +383,7 @@ void LeftArm::send_joint_cmd(const std::vector<double>& pose)
 {    
     std_msgs::msg::Float64MultiArray cmd_msg;
     cmd_msg.data = pose;
-    // left_arm_cmd_.position = pose;
+    left_arm_cmd_.position = pose;
 
     trajectory_msgs::msg::JointTrajectoryPoint point;
     point.positions = pose;
@@ -338,7 +398,7 @@ void LeftArm::send_joint_cmd(const std::vector<double>& pose)
     }
 
     controller_cmd_pub_->publish(cmd_msg);
-    // left_arm_cmd_publisher_->publish(left_arm_cmd_);
+    left_arm_cmd_publisher_->publish(left_arm_cmd_);
     traj_pub_->publish(traj_msg_);
 }
 

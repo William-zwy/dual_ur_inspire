@@ -3,6 +3,7 @@
 #include "trajectory_msgs/msg/joint_trajectory_point.hpp"
 
 #include "geometry_msgs/msg/pose.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
 
@@ -28,6 +29,10 @@ class RightArm: public rclcpp::Node
     geometry_msgs::msg::Pose get_target_pose(const std::vector<double>& pose);
     void send_joint_cmd(const std::vector<double>& pose);
     void init_params();
+    void wrist_pose_Callback(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
+    bool is_pose_msg_changed(const geometry_msgs::msg::PoseStamped::SharedPtr& a,const geometry_msgs::msg::PoseStamped::SharedPtr& b,
+        double position_tol = 1e-5,double orientation_tol = 1e-5);
+    geometry_msgs::msg::Pose translate_pose(const geometry_msgs::msg::PoseStamped::SharedPtr& pose);
 
     //tcp
     int port_;
@@ -41,9 +46,12 @@ class RightArm: public rclcpp::Node
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr right_arm_cmd_publisher_;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr controller_cmd_pub_;
     rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr traj_pub_;
+    rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr wrist_pose_sub_;
 
     std::vector<double> last_right_pose_;
     std::atomic<bool> right_new_goal_received_ = false;
+    geometry_msgs::msg::PoseStamped::SharedPtr right_pose_msg_;
+    geometry_msgs::msg::PoseStamped::SharedPtr last_right_pose_msg_;
 
     std::mutex pose_mutex_;
 

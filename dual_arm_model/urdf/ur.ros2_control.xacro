@@ -24,7 +24,7 @@
 
     <ros2_control name="${prefix}ur_arm_system" type="system">
       <hardware>
-          <plugin>ur_robot_driver/URPositionHardwareInterface</plugin>
+          <!-- <plugin>ur_robot_driver/URPositionHardwareInterface</plugin>
           <param name="robot_ip">${robot_ip}</param>
           <param name="script_filename">${script_filename}</param>
           <param name="output_recipe_filename">${output_recipe_filename}</param>
@@ -49,7 +49,17 @@
           <param name="tool_tx_idle_chars">${tool_tx_idle_chars}</param>
           <param name="tool_device_name">${tool_device_name}</param>
           <param name="tool_tcp_port">${tool_tcp_port}</param>
-          <param name="keep_alive_count">${keep_alive_count}</param>
+          <param name="keep_alive_count">${keep_alive_count}</param> -->
+          <plugin>mock_components/GenericSystem</plugin>
+          <param name="mock_sensor_commands">true</param>
+          <param name="state_following_offset">0.0</param>
+          <param name="calculate_dynamics">true</param>
+          <param name="joints">
+            [${prefix}shoulder_pan_joint, ${prefix}shoulder_lift_joint, ${prefix}elbow_joint,
+            ${prefix}wrist_1_joint, ${prefix}wrist_2_joint, ${prefix}wrist_3_joint]
+          </param>
+          <param name="command_interfaces">[position]</param>
+          <param name="state_interfaces">[position, velocity]</param>
       </hardware>
       <!-- Each joint definition -->
       <joint name="${prefix}shoulder_pan_joint">

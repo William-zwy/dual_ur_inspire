@@ -1,0 +1,47 @@
+# TeleVision requirements for Ubuntu 22.04 (Real Hand Control Only)
+# Updated to work without Isaac Gym and virtual environments
+
+# Core web and streaming dependencies
+aiohttp>=3.8.0
+aiohttp_cors>=0.7.0
+aiortc>=1.6.0
+av>=10.0.0
+
+# Computer vision and image processing
+# opencv-python>=4.6.0  # Use system package: sudo apt install python3-opencv
+numpy>=1.21.0
+
+# Hand tracking and retargeting (optional - we use ins-dex-retarget instead)
+pytransform3d>=3.3.0
+
+# Configuration and utilities
+PyYAML>=6.0
+packaging>=21.0
+setuptools>=65.0
+tqdm>=4.64.0
+
+# Core TeleVision VR interface
+vuer>=0.0.30
+
+# Scientific computing (lighter versions)
+scipy>=1.9.0
+matplotlib>=3.5.0
+
+# Data handling
+pandas>=1.4.0
+h5py>=3.7.0
+
+# Machine learning (CPU only - no CUDA requirements)
+# torch>=1.12.0+cpu
+# torchvision>=0.13.0+cpu
+
+# Development tools
+ipython>=8.0.0
+
+# Remove problematic dependencies:
+# - dex_retargeting (we use ins-dex-retarget instead)
+# - dynamixel_sdk (not needed for inspire hands)
+# - wandb (not needed for real-time control)
+# - scikit_learn (not needed for basic operation)
+# - seaborn (not needed for basic operation)
+# - einops (not needed without complex ML) 

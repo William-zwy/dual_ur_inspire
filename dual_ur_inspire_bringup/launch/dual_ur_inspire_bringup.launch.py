@@ -72,6 +72,7 @@ def launch_setup(context, *args, **kwargs):
         yaml_data = yaml.safe_load(f)
 
     use_rviz = yaml_data.get('/**', {}).get('ros__parameters', {}).get('use_rviz', True)
+    use_mock_sim = yaml_data.get('/**', {}).get('ros__parameters', {}).get('use_mock_sim', False)
 
     rviz_node = Node(
         package="rviz2",
@@ -121,6 +122,24 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
         parameters=[params_config],
     )
+    
+    rtde_receiver_node = Node(
+        package="rtde_pkg",
+        executable='receiver_node',
+        output="screen",
+    )
+    
+    rtde_left_ctrl_node = Node(
+        package="rtde_pkg",
+        executable='left_ctrl_node',
+        output="screen",
+    )
+    
+    rtde_right_ctrl_node = Node(
+        package="rtde_pkg",
+        executable='right_ctrl_node',
+        output="screen",
+    )
 
     control_node = Node(
     package="controller_manager",
@@ -164,12 +183,23 @@ def launch_setup(context, *args, **kwargs):
         fingers_node,
         left_arm_node,
         right_arm_node,
-        ur_control_node,
-        left_arm_controller_spawner,
-        right_arm_controller_spawner,
-        joint_state_broadcaster_spawner
+        
     ]
     if use_rviz:
         nodes_to_start.insert(0, rviz_node)
+        
+    if use_mock_sim:
+        nodes_to_start.extend([
+            ur_control_node,
+            left_arm_controller_spawner,
+            right_arm_controller_spawner,
+            joint_state_broadcaster_spawner
+        ])
+    else:
+        nodes_to_start.extend([
+            rtde_receiver_node,
+            rtde_left_ctrl_node,
+            rtde_right_ctrl_node,
+        ])
 
     return nodes_to_start
